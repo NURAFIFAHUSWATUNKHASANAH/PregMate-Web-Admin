@@ -1,254 +1,302 @@
-/* Styles for the Terapies page */
-.container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
+/* Re-use variables dari root yang sudah ada */
+
+/* Container Utama */
+.terapi-container {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.page-title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
+/* Header Section */
+.terapi-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
 }
 
-.action-container {
-  margin-bottom: 20px;
+.terapi-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
-.btn-add {
-  background-color: #4CAF50;
-  color: white;
-  padding: 10px 20px;
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 14px;
-  display: inline-block;
+.terapi-title-group i {
+    background: var(--primary-soft);
+    color: var(--primary);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1.2rem;
 }
 
-.btn-add i {
-  margin-right: 5px;
+.terapi-title-group h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
 }
 
+/* Button Tambah */
+.btn-add-modern {
+    background: var(--primary);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-add-modern:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(99, 102, 241, 0.3);
+}
+
+/* Table Style */
 .table-responsive {
-  overflow-x: auto;
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
 }
 
 .terapi-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #fff;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.terapi-table th, .terapi-table td {
-  padding: 15px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
+    width: 100%;
+    border-collapse: collapse;
 }
 
 .terapi-table th {
-  background-color: #f8f8f8;
-  font-weight: bold;
-}
-
-.terapi-table tr:hover {
-  background-color: #f1f1f1;
+    background: #f8fafc;
+    padding: 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
 }
 
 .terapi-table td {
-  font-size: 14px;
-  color: #333;
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text-main);
 }
 
-.terapi-table td a {
-  text-decoration: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  font-size: 14px;
-  margin-right: 5px;
+.terapi-table tr:hover {
+    background-color: #f8fafc;
 }
 
-.btn {
-  display: inline-block;
-  text-align: center;
+/* Action Buttons */
+.terapi-action-buttons {
+    display: flex;
+    gap: 8px;
 }
 
-.btn-detail {
-  background-color: #007bff;
-  color: white;
+.btn-action {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.2s;
+    text-decoration: none;
 }
 
-.btn-edit {
-  background-color: #ffc107;
-  color: white;
-}
+.btn-info { background: #f1f5f9; color: #64748b; }
+.btn-edit { background: #eff6ff; color: #3b82f6; }
+.btn-delete { background: #fff1f2; color: #e11d48; }
 
-.btn-delete {
-  background-color: #dc3545;
-  color: white;
-}
+.btn-info:hover { background: #e2e8f0; }
+.btn-edit:hover { background: #3b82f6; color: white; }
+.btn-delete:hover { background: #e11d48; color: white; }
 
-.btn:hover {
-  opacity: 0.8;
-}
-
-.terapi-table td a i {
-  margin-right: 5px;
-}
-
-/* Styles for the Terapies Detail Page */
-.container {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.page-title {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
-}
-
+/* Detail Card Mode */
 .detail-card {
-  background-color: #fff;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  margin-bottom: 20px;
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-.detail-card p {
-  font-size: 16px;
-  line-height: 1.6;
-  color: #555;
+.detail-img-wrapper {
+    text-align: center;
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 15px;
 }
 
-.detail-card strong {
-  font-weight: bold;
-  color: #333;
+.terapi-img {
+    max-width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
-.detail-card img.terapi-img {
-    max-width: 250px;  /* Mengatur ukuran gambar menjadi lebih kecil */
-    height: auto;
-    border-radius: 8px;
-    margin-top: 10px;
-    display: block;  /* Menjaga gambar tetap rapi */
-    margin-left: auto;
-    margin-right: auto;
+/* Form Styles (Sama dengan keluhan untuk konsistensi) */
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    margin-top: 8px;
+    font-family: inherit;
 }
 
-.action-container {
-  margin-top: 30px;
-  text-align: center;
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
-.btn-back {
-  background-color: #28a745;
-  color: white;
-  padding: 12px 25px;
-  text-decoration: none;
-  border-radius: 5px;
-  font-size: 16px;
-  transition: background-color 0.3s ease;
+/* ===== Penambahan Style Modern untuk Detail & Form Terapi ===== */
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.btn-back:hover {
-  background-color: #218838;
+.badge-success {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
 }
 
-a {
-  color: #007bff;
+/* Form Card Refinement */
+.form-card {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    max-width: 850px;
+    margin: 2rem auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.03);
 }
 
-a:hover {
-  text-decoration: underline;
+.form-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f1f5f9;
 }
 
-/* terapi.css */
-
-/* Container Utama Form */
-.form-container {
-  max-width: 800px;
-  margin: 40px auto;
-  background: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  padding: 30px 40px;
+.form-header h2 {
+    display: flex;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
 }
 
-/* Judul Form */
-.form-title {
-  text-align: center;
-  font-size: 28px;
-  margin-bottom: 25px;
-  color: #0A2F5A;
+.form-group {
+    margin-bottom: 1.5rem;
 }
 
-/* Label dan Input */
-.terapi-form label {
-  display: block;
-  margin-top: 15px;
-  font-weight: 600;
-  color: #333;
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 8px;
 }
 
-.terapi-form input,
-.terapi-form textarea {
-  width: 100%;
-  padding: 12px 15px;
-  margin-top: 8px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-  background-color: #f9f9f9;
+.icon-label {
+    color: var(--primary);
+    width: 16px;
+    text-align: center;
 }
 
-.terapi-form textarea {
-  resize: vertical;
-  min-height: 100px;
-}
-
-/* Tombol Aksi */
+/* Form Actions Layout */
 .form-actions {
-  margin-top: 30px;
-  display: flex;
-  justify-content: space-between;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
 }
 
 .btn-submit {
-  background-color: #0A2F5A;
-  color: white;
-  padding: 12px 25px;
-  border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: 0.3s;
+    background: var(--primary);
+    color: white;
+    padding: 12px 28px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
 }
 
 .btn-submit:hover {
-  background-color: #06345c;
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
 }
 
 .btn-cancel {
-  background-color: #ccc;
-  color: #333;
-  padding: 12px 25px;
-  text-decoration: none;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: 0.3s;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: color 0.2s;
 }
 
 .btn-cancel:hover {
-  background-color: #bbb;
+    color: #ef4444;
 }
 
-/* Ikon di Label */
-.icon-label {
-  margin-right: 6px;
-  color: #0A2F5A;
+/* Detail Page Specifics */
+.info-section label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+code {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    background: #f1f5f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+/* Responsive Grid for Form */
+@media (max-width: 640px) {
+    .form-card {
+        padding: 1.5rem;
+    }
+    
+    div[style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+        gap: 0 !important;
+    }
+
+    .detail-content {
+        grid-template-columns: 1fr !important;
+    }
 }

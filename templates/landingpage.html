@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PregMate | Dari Dua Hati, Menyambut Satu Kehidupan</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+
+</head>
+<body>
+
+<nav>
+    <div class="logo">
+        <i class="fas fa-baby-carriage"></i>
+        <span>PregMate</span>
+    </div>
+
+    <ul class="nav-links">
+        <li><a href="#home">Beranda</a></li>
+        <li><a href="#features">Fitur</a></li>
+        <li><a href="#education">Edukasi</a></li>
+        <li><a href="#download">Download</a></li>
+    </ul>
+
+    <a href="/admin/login" class="btn-login-nav">Admin</a>
+</nav>
+
+<main>
+
+<section class="hero" id="home">
+    <div class="hero-content fade-up">
+        <span class="section-tag">✨ Untuk Ibu & Ayah</span>
+        <h1>Menjaga <span>Setiap Detik</span><br> Bersama.</h1>
+        <p>
+            PregMate hadir sebagai pendamping digital bagi Ibu dan Ayah
+            untuk memantau kehamilan, menjaga kesehatan, dan menyambut
+            kehidupan baru dengan penuh cinta dan kesiapan.
+        </p>
+
+        <div class="hero-btns">
+            <a href="#download" class="btn-primary">Mulai Sekarang</a>
+            <a href="#features" class="btn-secondary">Lihat Fitur</a>
+        </div>
+    </div>
+
+    <div class="hero-visual fade-up delay">
+        <div class="main-stats">
+            <i class="fas fa-heartbeat"></i>
+            <div>
+                <span>Status Hari Ini</span>
+                <strong>Janin Sehat & Aktif</strong>
+                <small style="color:#22c55e;">● Gerakan normal</small>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features" id="features">
+    <div class="section-header fade-up">
+        <h2>Fitur Untuk <span>Keluarga</span></h2>
+        <p>Dirancang untuk Ibu dan Ayah agar lebih siap dan terhubung.</p>
+    </div>
+
+    <div class="feature-grid">
+        <div class="feature-card fade-up">
+            <div class="icon-box"><i class="fas fa-child"></i></div>
+            <h3>Pantau Janin</h3>
+            <p>Perkembangan janin mingguan yang mudah dipahami oleh Ibu & Ayah.</p>
+        </div>
+
+        <div class="feature-card fade-up delay">
+            <div class="icon-box"><i class="fas fa-heart"></i></div>
+            <h3>Mood & Emosi</h3>
+            <p>Pantau kondisi emosional ibu untuk dukungan yang lebih baik dari pasangan.</p>
+        </div>
+
+        <div class="feature-card fade-up delay2">
+            <div class="icon-box"><i class="fas fa-weight"></i></div>
+            <h3>Berat Ideal</h3>
+            <p>Panduan kenaikan berat badan sesuai standar medis.</p>
+        </div>
+
+        <div class="feature-card fade-up">
+            <div class="icon-box"><i class="fas fa-spa"></i></div>
+            <h3>Relaksasi</h3>
+            <p>Senam & meditasi untuk kesehatan ibu dan ketenangan pikiran.</p>
+        </div>
+
+        <div class="feature-card fade-up delay">
+            <div class="icon-box"><i class="fas fa-users"></i></div>
+            <h3>Kolaborasi Ayah</h3>
+            <p>Ayah dapat ikut memantau dan mendukung setiap perkembangan.</p>
+        </div>
+
+        <div class="feature-card fade-up delay2">
+            <div class="icon-box"><i class="fas fa-bell"></i></div>
+            <h3>Pengingat Pintar</h3>
+            <p>Jadwal kontrol, vitamin, dan aktivitas penting.</p>
+        </div>
+    </div>
+</section>
+
+<section class="education" id="education">
+    <div class="edu-container">
+        <div class="edu-text fade-up">
+            <span class="section-tag">Edukasi</span>
+            <h2>Pengetahuan untuk <span>Ibu & Ayah</span></h2>
+            <p>
+                Artikel terpercaya untuk membantu memahami kehamilan,
+                nutrisi, dan persiapan menjadi orang tua.
+            </p>
+        </div>
+
+        <div class="edu-image fade-up delay">
+            <img src="https://images.unsplash.com/photo-1555252333-9f8e92e65ee9" />
+        </div>
+    </div>
+</section>
+
+<section class="download" id="download">
+    <div class="download-card fade-up">
+        <h2>Siap Menjadi Orang Tua?</h2>
+        <p>Mulai perjalanan bersama PregMate hari ini.</p>
+
+        <div class="app-btns">
+            <button class="btn-app"><i class="fab fa-apple"></i> App Store</button>
+            <button class="btn-app"><i class="fab fa-google-play"></i> Play Store</button>
+        </div>
+    </div>
+</section>
+
+</main>
+
+<footer>
+    <p>© 2026 PregMate • Dibuat untuk Ibu & Ayah ❤️</p>
+</footer>
+
+<script>
+const elements = document.querySelectorAll('.fade-up');
+
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if(entry.isIntersecting){
+            entry.target.classList.add('show');
+        }
+    });
+});
+
+elements.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>

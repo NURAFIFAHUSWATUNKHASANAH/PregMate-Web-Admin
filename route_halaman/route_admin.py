@@ -40,9 +40,9 @@ def register_admin_route():
 def login_admin():
     return login_admin_controller()
 
-@admin_bp.route('/admin/dashboard')
+@admin_bp.route('/dashboard')
 def dashboard_admin():
-    return controller_keluhan.index_keluhan()
+    return redirect(url_for('dashboard.index'))
 
 @admin_bp.route('/profile', methods=['GET', 'POST'])
 def profile():

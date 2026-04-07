@@ -1,55 +1,55 @@
 {% extends 'layouts/layout.html' %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/artikel.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/artikel.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
+<div class="form-card">
     <header class="form-header">
-      <h1>Edit Artikel</h1>
-      <a href="{{ url_for('artikel_bp.index') }}" class="btn btn-back">Kembali ke Daftar Artikel</a>
+        <h2>
+            <i class="fas fa-file-pen" style="color: var(--primary);"></i>
+            Edit Artikel
+        </h2>
+        <a href="{{ url_for('artikel_bp.index') }}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
     </header>
 
-    <section class="form-section">
-      <form action="{{ url_for('artikel_bp.edit', id=article._id) }}" method="POST" enctype="multipart/form-data" class="artikel-form">
-
-        <!-- Judul -->
+    <form action="{{ url_for('artikel_bp.edit', id=article._id) }}" method="POST" enctype="multipart/form-data">
         <div class="form-group">
-          <label for="title" class="form-label">Judul:</label>
-          <input type="text" name="title" id="title" value="{{ article.title }}" required class="form-input" placeholder="Masukkan judul artikel">
+            <label for="title"><i class="fas fa-heading icon-label"></i> Judul Artikel</label>
+            <input type="text" name="title" id="title" value="{{ article.title }}" required class="form-control">
         </div>
 
-        <!-- Konten -->
         <div class="form-group">
-          <label for="content" class="form-label">Konten:</label>
-          <textarea name="content" id="content" rows="6" required class="form-input" placeholder="Masukkan isi konten artikel">{{ article.content }}</textarea>
+            <label for="content"><i class="fas fa-align-left icon-label"></i> Isi Konten</label>
+            <textarea name="content" id="content" rows="10" required class="form-control">{{ article.content }}</textarea>
         </div>
 
-        <!-- Gambar Saat Ini -->
         <div class="form-group">
-          <label class="form-label">Gambar Saat Ini:</label>
-          {% if article.imageUrl %}
-            <div class="current-image">
-              <img src="{{ article.imageUrl }}" alt="Gambar Artikel" class="img-preview" width="200">
-            </div>
-          {% else %}
-            <p>Tidak ada gambar</p>
-          {% endif %}
+            <label><i class="fas fa-images icon-label"></i> Gambar Saat Ini</label>
+            {% if article.imageUrl %}
+                <div class="current-image-wrapper">
+                    <img src="{{ article.imageUrl }}" alt="Gambar Artikel" class="img-preview" width="280">
+                </div>
+            {% else %}
+                <p style="font-size: 0.9rem; color: var(--text-muted); background: #f8fafc; padding: 10px; border-radius: 8px;">Tidak ada gambar terunggah</p>
+            {% endif %}
         </div>
 
-        <!-- Upload Gambar Baru -->
         <div class="form-group">
-          <label for="image" class="form-label">Gambar Baru (Upload Image):</label>
-          <input type="file" name="image" id="image" accept="image/*" class="form-input">
+            <label for="image"><i class="fas fa-cloud-arrow-up icon-label"></i> Ganti Gambar Baru (Opsional)</label>
+            <input type="file" name="image" id="image" accept="image/*" class="form-control" style="padding: 10px;">
         </div>
 
-        <!-- Submit Button -->
-        <div class="form-group">
-          <button type="submit" class="btn btn-submit">Update Artikel</button>
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-rotate"></i> Update Artikel
+            </button>
+            <a href="{{ url_for('artikel_bp.index') }}" class="btn-cancel">Batal</a>
         </div>
-
-      </form>
-    </section>
-  </div>
+    </form>
+</div>
 {% endblock %}

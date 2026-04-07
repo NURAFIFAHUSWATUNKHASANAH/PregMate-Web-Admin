@@ -32,3 +32,6 @@ def get_terapi_by_ids():
 def get_keluhan_by_id(id):
     return controller_keluhan.get_keluhan_by_id(id)
 
+# @keluhan_bp.route('/hapus_keluhan/<id>', methods=['POST'])
+# def hapus_keluhan(id):
+#     return controller_keluhan.hapus_keluhan(id)

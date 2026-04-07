@@ -1,36 +1,88 @@
 {% extends 'layouts/layout.html' %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/keluhan.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/keluhan.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <h1>Daftar Keluhan</h1>
-    <a class="tambah-link" href="{{ url_for('keluhan.tambah_keluhan') }}">+ Tambah Keluhan</a>
+<div class="keluhan-container">
+    
+    <!-- Header -->
+    <div class="keluhan-header-wrapper">
+        <div class="keluhan-title-group">
+            <i class="fas fa-notes-medical"></i>
+            <div>
+                <h2>Kelola Data Keluhan</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+                    Total {{ keluhan_list|length }} data ditemukan
+                </p>
+            </div>
+        </div>
 
-    <table class="keluhan-table">
-      <thead>
-        <tr>
-          <th>No</th>
-          <th>Nama</th>
-          <th>Deskripsi</th>
-          <th style="text-align: center;">Aksi</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for keluhan in keluhan_list %}
-          <tr>
-            <td>{{ loop.index }}</td>
-            <td>{{ keluhan.nama }}</td>
-            <td>{{ keluhan.deskripsi }}</td>
-            <td style="text-align: center;">
-              <a href="{{ url_for('keluhan.edit_keluhan', id=keluhan._id) }}" class="btn btn-warning">Edit</a>
-              <a href="{{ url_for('keluhan.hapus_keluhan', id=keluhan._id) }}" class="btn btn-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus keluhan ini?')">Hapus</a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        <a href="{{ url_for('keluhan.tambah_keluhan') }}" class="keluhan-add-btn">
+            <i class="fas fa-plus"></i>
+            <span>Tambah Keluhan</span>
+        </a>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        <table class="keluhan-table">
+            <thead>
+                <tr>
+                    <th width="80" style="text-align:center;">No</th>
+                    <th width="200">Nama Keluhan</th>
+                    <th>Deskripsi Ringkas</th>
+                    <th width="150" style="text-align:center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for keluhan in keluhan_list %}
+                <tr>
+                    <td style="text-align:center;">
+                        <span class="index-number">{{ loop.index }}</span>
+                    </td>
+
+                    <td>
+                        <strong style="color: var(--text-main);">
+                            {{ keluhan.nama }}
+                        </strong>
+                    </td>
+
+                    <td class="td-desc">
+                        {{ keluhan.deskripsi }}
+                    </td>
+
+                    <td>
+                        <div class="keluhan-action-buttons">
+
+                            <!-- Edit -->
+                            <a href="{{ url_for('keluhan.edit_keluhan', id=keluhan._id) }}" 
+                               class="btn-action btn-edit" 
+                               title="Edit Data">
+                                <i class="fas fa-pen-to-square"></i>
+                            </a>
+
+                            <!-- Hapus (SweetAlert Trigger) -->
+                            <a href="#"
+                               class="btn-action btn-delete btn-hapus"
+                               data-url="{{ url_for('keluhan.hapus_keluhan', id=keluhan._id) }}"
+                               data-nama="{{ keluhan.nama }}"
+                               title="Hapus Data">
+                                <i class="fas fa-trash-can"></i>
+                            </a>
+
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
+{% endblock %}
 {% endblock %}

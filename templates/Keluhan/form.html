@@ -2,32 +2,53 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/keluhan.css') }}">
-
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <h1>{{ action }} Keluhan</h1>
+<div class="form-card">
+    <div class="form-header">
+        <h2>
+            <i class="fas {{ 'fa-edit' if action == 'Edit' else 'fa-plus-circle' }}" style="color: var(--primary); margin-right: 10px;"></i>
+            {{ action }} Data Keluhan
+        </h2>
+    </div>
+
     <form method="POST">
-      <label for="nama">Nama Keluhan:</label>
-      <input type="text" name="nama" id="nama" value="{{ keluhan.get('nama', '') }}" required>
+        <div class="form-group">
+            <label for="nama">Nama Keluhan</label>
+            <input type="text" name="nama" id="nama" class="form-control" 
+                   placeholder="Contoh: Nyeri Punggung Bawah" 
+                   value="{{ keluhan.get('nama', '') }}" required>
+        </div>
 
-      <label for="deskripsi">Deskripsi:</label>
-      <textarea name="deskripsi" id="deskripsi">{{ keluhan.get('deskripsi', '') }}</textarea>
+        <div class="form-group">
+            <label for="deskripsi">Deskripsi Detail</label>
+            <textarea name="deskripsi" id="deskripsi" class="form-control" 
+                      placeholder="Jelaskan detail keluhan secara medis atau umum...">{{ keluhan.get('deskripsi', '') }}</textarea>
+        </div>
 
-      <label>Rekomendasi Gerakan Terapi:</label>
-      <div class="checkbox-list">
-        {% for terapi in terapi_list %}
-          <label class="checkbox-item">
-            <input type="checkbox" name="rekomendasi_terapi_id" value="{{ terapi._id }}"
-              {% if terapi._id|string in (keluhan.get('rekomendasi_terapi_id', [])|map('string')) %}checked{% endif %}>
-            {{ terapi.nama }}
-          </label>
-        {% endfor %}
-      </div>
+        <div class="form-group">
+            <label>Rekomendasi Gerakan Terapi</label>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">Pilih satu atau beberapa terapi yang sesuai untuk keluhan ini.</p>
+            
+            <div class="checkbox-grid">
+                {% for terapi in terapi_list %}
+                <label class="checkbox-item">
+                    <input type="checkbox" name="rekomendasi_terapi_id" value="{{ terapi._id }}"
+                        {% if terapi._id|string in (keluhan.get('rekomendasi_terapi_id', [])|map('string')) %}checked{% endif %}>
+                    <span>{{ terapi.nama }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
 
-      <button type="submit">{{ action }}</button>
-      <a href="{{ url_for('keluhan.index_keluhan') }}">Batal</a>
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save" style="margin-right: 8px;"></i> Simpan Perubahan
+            </button>
+            <a href="{{ url_for('keluhan.index_keluhan') }}" class="btn-cancel">Batal</a>
+        </div>
     </form>
-  </div>
+</div>
 {% endblock %}

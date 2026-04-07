@@ -1,5 +1,10 @@
+import datetime
+import random
 import smtplib
 from email.mime.text import MIMEText
+from urllib import request
+from bson import ObjectId
+from flask import jsonify
 from werkzeug.security import generate_password_hash
 from models.datauser_model import User
 
@@ -8,8 +13,8 @@ OTP_EXPIRE_MINUTES = 10
 def send_email(to_email, subject, message):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    smtp_user = "rizkiekamulyani123@gmail.com"        # Ganti sesuai email kamu
-    smtp_password = "ykfa bxvy ihly thqm"     # Ganti sesuai password/app password
+    smtp_user = "nurafifahuswatunkh@gmail.com"        # Ganti sesuai email kamu
+    smtp_password = "epkw hpxz igfv qyrx"     # Ganti sesuai password/app password
 
     msg = MIMEText(message)
     msg['Reply-To'] = smtp_user
@@ -44,7 +49,7 @@ def request_otp():
 
     otp_data = {
         "otp": otp,
-        "otp_expired_at": datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
+        "otp_expired_at": datetime.utcnow() + datetime.timedelta(minutes=OTP_EXPIRE_MINUTES)
     }
     User.db.users.update_one(
         {"_id": ObjectId(user["_id"])},

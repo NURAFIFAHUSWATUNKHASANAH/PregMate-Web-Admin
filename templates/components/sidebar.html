@@ -1,10 +1,55 @@
 <aside class="sidebar">
-  <ul>
-    <li><a href="{{ url_for('keluhan.index_keluhan') }}">Daftar Keluhan</a></li>
-    <li><a href="/terapi">Daftar Terapi</a></li>
-    <li><a href="/api/admin/artikel">Daftar Artikel</a></li>
-    <li><a href="{{ url_for('histori_user_bp.histori_user_page') }}">Histori User</a></li> <!-- ✅ Link Histori User -->
-    <li><a href="{{ url_for('admin_bp.profile') }}">Profil Admin</a></li>
-    <li><a href="{{ url_for('admin_bp.logout') }}">Logout</a></li>
-  </ul>
+  <div class="sidebar-content">
+    <small class="sidebar-label">MENU UTAMA</small>
+    <ul class="nav-list">
+      <li>
+        <a href="{{ url_for('dashboard.index') }}" class="sidebar-link">
+          <i class="fas fa-th-large"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('admin_user.index') }}" class="sidebar-link">
+          <i class="fas fa-users"></i>
+          <span>Kelola User</span>
+        </a>
+      </li>
+      <li>
+        <a href="/api/admin/artikel" class="sidebar-link">
+          <i class="fas fa-newspaper"></i>
+          <span>Daftar Artikel</span>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('histori_user_bp.histori_user_page') }}" class="sidebar-link">
+          <i class="fas fa-history"></i>
+          <span>Aktivitas User</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-divider"></div>
+
+    <small class="sidebar-label">PENGATURAN</small>
+    <ul class="nav-list">
+      <li>
+        <a href="#"
+           class="sidebar-link logout-link btn-logout"
+           data-url="{{ url_for('admin_bp.logout') }}">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="upgrade-card">
+      <i class="fas fa-shield-alt"></i>
+      <p>Sistem Aman <span>v2.1.0</span></p>
+    </div>
+  </div>
 </aside>
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
+{% endblock %}

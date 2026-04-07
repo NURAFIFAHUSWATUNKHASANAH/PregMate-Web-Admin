@@ -1,0 +1,109 @@
+{% extends 'layouts/layout.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="user-container">
+    
+    <!-- HEADER -->
+    <div class="user-header-wrapper">
+        <div class="user-title-group">
+            <i class="fas fa-users"></i>
+            <div>
+                <h2>Kelola User</h2>
+                <p class="subtitle">
+                    Manajemen akun pengguna sistem
+                </p>
+            </div>
+        </div>
+
+        <!-- SEARCH -->
+        <form class="search-form" method="GET">
+            <input 
+                type="text" 
+                name="search"
+                class="search-input" 
+                placeholder="Cari user..." 
+                value="{{ request.args.get('search','') }}"
+            >
+            <button type="submit" class="btn-search">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+
+        <!-- BUTTON TAMBAH -->
+        <a href="{{ url_for('admin_user.create') }}" class="btn-add-modern">
+            <i class="fas fa-plus"></i>
+            <span>Tambah User</span>
+        </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th style="text-align:center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.nama }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if user.role == 'ibu' %}badge-ibu
+                                {% else %}badge-pendamping
+                                {% endif %}">
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="user-action-buttons">
+                                
+                                <!-- EDIT -->
+                                <a href="{{ url_for('admin_user.edit', id=user._id) }}" 
+                                   class="btn-action btn-edit"
+                                   title="Edit">
+                                    <i class="fas fa-pen-to-square"></i>
+                                </a>
+
+                                <!-- DELETE (PAKAI SWEETALERT) -->
+                                <a href="#"
+                                   class="btn-action btn-delete btn-hapus"
+                                   data-url="{{ url_for('admin_user.delete', id=user._id) }}"
+                                   data-nama="{{ user.nama }}"
+                                   title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            <i class="fas fa-users-slash fa-2x"></i>
+                            <p>Data user tidak ditemukan</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
+{% endblock %}

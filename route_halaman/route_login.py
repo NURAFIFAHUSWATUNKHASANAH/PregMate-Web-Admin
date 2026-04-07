@@ -15,7 +15,10 @@ def get_user(user_id):
 def update_user(user_id):
     return controller_login.update_user_profile(user_id)
 
-
 @login_bp.route("/google", methods=["POST"])
 def login_google():
     return controller_login.login_google()
+
+@login_bp.route("/login", methods=["GET"])
+def login_page():
+    return controller_login.login_page()

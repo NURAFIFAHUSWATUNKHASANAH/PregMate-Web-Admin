@@ -1,0 +1,43 @@
+{% extends 'layouts/layout.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+
+    <h2>Tambah User</h2>
+
+    <form method="POST">
+        <div class="form-group">
+            <label>Nama</label>
+            <input type="text" name="nama" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="text" name="password" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+            <label>Role</label>
+            <select name="role" class="form-control">
+                <option value="ibu">Ibu</option>
+                <option value="pendamping">Pendamping</option>
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button class="btn-submit">Simpan</button>
+            <a href="{{ url_for('admin_user.index') }}" class="btn-cancel">Batal</a>
+        </div>
+    </form>
+
+</div>
+{% endblock %}

@@ -1,0 +1,399 @@
+/* =========================
+   USER PAGE (SCOPED)
+   ========================= */
+
+.user-container {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== HEADER ===== */
+.user-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.user-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-title-group i {
+    background: var(--primary-soft);
+    color: var(--primary);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1.2rem;
+}
+
+.user-title-group h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.user-title-group .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ===== SEARCH (SCOPED BIAR GAK TABRAKAN) ===== */
+.user-container .search-form {
+    display: flex;
+    gap: 8px;
+    flex-grow: 1;
+    max-width: 400px;
+}
+
+.user-container .search-input {
+    flex-grow: 1;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.user-container .search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.user-container .btn-search {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0 15px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* ===== BUTTON TAMBAH ===== */
+.btn-add-modern {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary);
+    color: white;
+    padding: 10px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-add-modern:hover {
+    opacity: 0.9;
+}
+
+/* ===== TABLE ===== */
+.user-container .table-responsive {
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.user-table th {
+    background: #f8fafc;
+    padding: 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+.user-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text-main);
+}
+
+/* ===== BADGE ROLE ===== */
+.badge {
+    display: inline-block;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    border-radius: 999px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+/* IBU */
+.badge-ibu {
+    background: #ecfdf5;
+    color: #059669;
+}
+
+/* PENDAMPING */
+.badge-pendamping {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+/* ===== ACTION BUTTONS ===== */
+.user-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.user-action-buttons .btn-action {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s;
+    font-size: 1rem;
+}
+
+/* EDIT */
+.user-action-buttons .btn-edit {
+    background: #eff6ff;
+    color: #3b82f6;
+}
+
+.user-action-buttons .btn-edit:hover {
+    background: #3b82f6;
+    color: #fff;
+}
+
+/* DELETE */
+.user-action-buttons .btn-delete {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+.user-action-buttons .btn-delete:hover {
+    background: #e11d48;
+    color: #fff;
+}
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-muted);
+}
+
+.empty-state i {
+    display: block;
+    margin-bottom: 10px;
+    opacity: 0.3;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* =========================
+   USER FORM (EDIT / CREATE)
+   ========================= */
+
+/* Container utama */
+.form-container {
+    padding: 2rem;
+}
+
+/* Wrapper biar konsisten lebar */
+.form-wrapper {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Header */
+.form-header {
+    margin-bottom: 1.5rem;
+}
+
+.form-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.form-title-group i {
+    background: var(--primary-soft);
+    color: var(--primary);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 1.2rem;
+}
+
+.form-title-group h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.form-title-group .subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Card Form */
+.form-card {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+}
+
+/* Form Group */
+.form-card .form-group {
+    margin-bottom: 1.4rem;
+}
+
+.form-card label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 6px;
+    display: block;
+}
+
+/* Input dengan icon */
+.input-icon {
+    position: relative;
+}
+
+.input-icon i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+/* Input control scoped */
+/* FIX OVERFLOW INPUT */
+.form-card .form-control {
+    width: 100%;
+    padding: 12px 14px 12px 40px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    
+    box-sizing: border-box; /* 🔥 INI KUNCI */
+}
+
+/* Biar icon gak dorong layout */
+.input-icon {
+    position: relative;
+    width: 100%; /* 🔥 TAMBAHAN */
+}
+
+.form-card .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/* Select biar rapi */
+.form-card select.form-control {
+    cursor: pointer;
+}
+
+/* Action Buttons */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Cancel */
+.btn-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    color: var(--text-muted);
+    padding: 10px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-cancel:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+/* Submit */
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-submit:hover {
+    opacity: 0.9;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .form-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-submit,
+    .btn-cancel {
+        justify-content: center;
+        width: 100%;
+    }
+}

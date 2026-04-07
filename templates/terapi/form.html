@@ -2,38 +2,69 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/terapi.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-  <div class="form-container">
-    <h1 class="form-title">{{ action }} Terapi</h1>
-    <form method="POST" enctype="multipart/form-data" class="terapi-form">
-      
-      <label for="nama"><i class="fas fa-signature icon-label"></i>Nama Terapi:</label>
-      <input type="text" name="nama" id="nama" value="{{ terapi.nama if terapi else '' }}" required>
+<div class="form-card">
+    <div class="form-header">
+        <h2>
+            <i class="fas {{ 'fa-pen-to-square' if action == 'Edit' else 'fa-circle-plus' }}" style="color: var(--primary); margin-right: 10px;"></i>
+            {{ action }} Data Terapi
+        </h2>
+    </div>
 
-      <label for="deskripsi"><i class="fas fa-align-left icon-label"></i>Deskripsi:</label>
-      <textarea name="deskripsi" id="deskripsi">{{ terapi.deskripsi if terapi else '' }}</textarea>
+    <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="nama"><i class="fas fa-signature icon-label"></i> Nama Terapi</label>
+            <input type="text" name="nama" id="nama" class="form-control" 
+                   value="{{ terapi.nama if terapi else '' }}" required placeholder="Contoh: Glute Bridge">
+        </div>
 
-      <label for="video_url"><i class="fas fa-video icon-label"></i>URL Video:</label>
-      <input type="url" name="video_url" id="video_url" value="{{ terapi.video_url if terapi else '' }}" required>
+        <div class="form-group">
+            <label for="deskripsi"><i class="fas fa-align-left icon-label"></i> Deskripsi Langkah-langkah</label>
+            <textarea name="deskripsi" id="deskripsi" class="form-control" 
+                      placeholder="Jelaskan cara melakukan gerakan ini dengan benar...">{{ terapi.deskripsi if terapi else '' }}</textarea>
+        </div>
 
-      <label for="gambar"><i class="fas fa-image icon-label"></i>Upload Gambar (.jpg/.png):</label>
-      <input type="file" name="gambar" id="gambar" accept=".jpg,.jpeg,.png" {% if not terapi %} required {% endif %}>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <!-- <div class="form-group">
+                <label for="video_url"><i class="fas fa-video icon-label"></i> URL Video (YouTube/Drive)</label>
+                <input type="url" name="video_url" id="video_url" class="form-control" 
+                       value="{{ terapi.video_url if terapi else '' }}" required placeholder="https://...">
+            </div> -->
+            <div class="form-group">
+                <label for="gambar"><i class="fas fa-image icon-label"></i> Upload Gambar (.jpg/.png)</label>
+                <input type="file" name="gambar" id="gambar" class="form-control" 
+                       accept=".jpg,.jpeg,.png" {% if not terapi %} required {% endif %}>
+            </div>
+        </div>
 
-      <label for="model_id"><i class="fas fa-cube icon-label"></i>Model ID:</label>
-      <input type="text" name="model_id" id="model_id" value="{{ terapi.model_id if terapi else '' }}" required>
+        <!-- <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label for="model_id"><i class="fas fa-cube icon-label"></i> Model ID</label>
+                <input type="text" name="model_id" id="model_id" class="form-control" 
+                       value="{{ terapi.model_id if terapi else '' }}" required placeholder="ID Model AI">
+            </div>
+            <div class="form-group">
+                <label for="landmark_referensi_id"><i class="fas fa-map-marker-alt icon-label"></i> Landmark Referensi ID</label>
+                <input type="text" name="landmark_referensi_id" id="landmark_referensi_id" class="form-control" 
+                       value="{{ terapi.landmark_referensi_id if terapi else '' }}" required placeholder="ID Landmark">
+            </div>
+        </div> -->
 
-      <label for="landmark_referensi_id"><i class="fas fa-map-marker-alt icon-label"></i>Landmark Referensi ID:</label>
-      <input type="text" name="landmark_referensi_id" id="landmark_referensi_id" value="{{ terapi.landmark_referensi_id if terapi else '' }}" required>
+        <div class="form-group">
+            <label for="peringatan" style="color: #e11d48;"><i class="fas fa-exclamation-triangle icon-label" style="color: #e11d48;"></i> Peringatan Keamanan</label>
+            <input type="text" name="peringatan" id="peringatan" class="form-control" 
+                   value="{{ terapi.peringatan if terapi else '' }}" placeholder="Contoh: Jangan lakukan jika nyeri akut">
+        </div>
 
-      <label for="peringatan"><i class="fas fa-exclamation-triangle icon-label"></i>Peringatan:</label>
-      <input type="text" name="peringatan" id="peringatan" value="{{ terapi.peringatan if terapi else '' }}">
-
-      <div class="form-actions">
-        <button type="submit" class="btn-submit">{{ action }}</button>
-        <a href="{{ url_for('terapi.index_terapi') }}" class="btn-cancel">Batal</a>
-      </div>
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-save"></i> {{ action }} Terapi
+            </button>
+            <a href="{{ url_for('terapi.index_terapi') }}" class="btn-cancel">Batal</a>
+        </div>
     </form>
-  </div>
+</div>
 {% endblock %}

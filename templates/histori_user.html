@@ -3,18 +3,41 @@
 {% block title %}Histori Aktivitas User{% endblock %}
 
 {% block extra_css %}
-<!-- CSS Kustom -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/logs.css') }}">
-<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="container">
-  <h2 class="judul-histori">Histori Aktivitas User</h2>
+<div class="logs-container">
+
+  <div class="logs-header-wrapper">
+    
+    <div class="logs-title-group">
+      <i class="fas fa-history"></i>
+      <div>
+        <h2>Histori Aktivitas User</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+          Pantau log aktivitas sistem secara real-time
+        </p>
+      </div>
+    </div>
+
+    <!-- SEARCH STYLE SEPERTI ARTIKEL -->
+    <form class="search-form" onsubmit="return false;">
+      <input type="text"
+             id="customSearch"
+             class="search-input"
+             placeholder="Cari histori aktivitas...">
+      <button type="button" class="btn-search">
+        <i class="fas fa-search"></i>
+      </button>
+    </form>
+
+  </div>
 
   <div class="table-responsive">
-    <table id="logTable" class="display table table-bordered">
+    <table id="logTable" class="display nowrap">
       <thead>
         <tr>
           <th>Waktu</th>
@@ -23,21 +46,50 @@
           <th>Aksi</th>
           <th>Status</th>
           <th>Keterangan</th>
-          <th style="text-align: center;">Aksi</th>
+          <th style="text-align: center;">Hapus</th>
         </tr>
       </thead>
       <tbody>
         {% for log in logs %}
         <tr>
-          <td>{{ log['timestamp'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
-          <td>{{ log['user_id'] }}</td>
-          <td>{{ log['user_name'] or 'Tidak Diketahui' }}</td>
-          <td>{{ log['action'] }}</td>
-          <td>{{ log['status'] }}</td>
-          <td>{{ log['keterangan'] or '-' }}</td>
+          <td>
+            <span style="font-weight: 600;">
+              {{ log['timestamp'].strftime('%Y-%m-%d') }}
+            </span><br>
+            <small class="text-muted">
+              {{ log['timestamp'].strftime('%H:%M:%S') }}
+            </small>
+          </td>
+
+          <td>
+            <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">
+              {{ log['user_id'] }}
+            </code>
+          </td>
+
+          <td>{{ log['user_name'] or 'Guest' }}</td>
+
+          <td><strong>{{ log['action'] }}</strong></td>
+
+          <td>
+            <span class="status-badge {{ 'status-success' if log['status']|lower == 'success' else 'status-failed' }}">
+              {{ log['status'] }}
+            </span>
+          </td>
+
+          <td style="color: var(--text-muted); font-size: 0.8rem;">
+            {{ log['keterangan'] or '-' }}
+          </td>
+
           <td style="text-align: center;">
-            <form method="POST" action="{{ url_for('histori_user_bp.delete_log', log_id=log['_id']) }}" onsubmit="return confirm('Yakin ingin menghapus log ini?')">
-              <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+            <form method="POST">
+              <button type="button"
+                      class="btn-delete-log btn-hapus"
+                      data-url="{{ url_for('histori_user_bp.delete_log', log_id=log['_id']) }}"
+                      data-nama="Log {{ log['action'] }}"
+                      title="Hapus Log">
+                <i class="fas fa-trash-can"></i>
+              </button>
             </form>
           </td>
         </tr>
@@ -45,64 +97,42 @@
       </tbody>
     </table>
   </div>
-</div>
 
-<!-- Tambahkan JS langsung di sini -->
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script>
-  $(document).ready(function () {
-    $('#logTable').DataTable({
-      responsive: true,
-      pageLength: 10,
-      language: {
-        search: "🔍 Cari:",
-        lengthMenu: "Tampilkan _MENU_ entri",
-        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
-        paginate: {
-          first: "« Pertama",
-          last: "Terakhir »",
-          next: "›",
-          previous: "‹"
-        },
-        zeroRecords: "Tidak ditemukan data.",
-        infoEmpty: "Tidak ada entri tersedia",
-        infoFiltered: "(difilter dari total _MAX_ entri)"
-      }
-    });
-  });
-</script>
+</div>
 {% endblock %}
 
-
 {% block extra_js %}
-<!-- jQuery & DataTables -->
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
 
 <script>
   $(document).ready(function () {
-    $('#logTable').DataTable({
+
+    const table = $('#logTable').DataTable({
       responsive: true,
       pageLength: 10,
-      lengthMenu: [[5, 10, 20, -1], [5, 10, 20, "Semua"]],
+      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
+      order: [[0, "desc"]],
+      searching: false, // matikan search default
       language: {
-        search: "🔍 Cari:",
-        lengthMenu: "Tampilkan _MENU_ entri",
-        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ entri",
+        lengthMenu: "_MENU_ data per halaman",
+        info: "Menampilkan _START_ - _END_ dari _TOTAL_ log",
         paginate: {
-          first: "« Pertama",
-          last: "Terakhir »",
           next: "›",
           previous: "‹"
         },
-        zeroRecords: "Tidak ditemukan data.",
-        infoEmpty: "Tidak ada entri tersedia",
-        infoFiltered: "(difilter dari total _MAX_ entri)"
-      },
-      dom: '<"row mb-2"<"col-sm-6"f><"col-sm-6"l>>rt<"row mt-2"<"col-sm-6"i><"col-sm-6"p>>'
+        zeroRecords: "Tidak ada log aktivitas ditemukan."
+      }
     });
+
+    // Custom Search
+    $('#customSearch').on('keyup', function () {
+      table.search(this.value).draw();
+    });
+
   });
 </script>
+
 {% endblock %}

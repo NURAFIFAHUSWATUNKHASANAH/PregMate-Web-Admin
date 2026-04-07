@@ -1,63 +1,97 @@
+# route_halaman/route_histori.py
+
 from flask import Blueprint, request, jsonify
-from datetime import datetime
-from controller.controller_histori import (
-    format_histori_data,
-    get_histori,
-    get_histori_stats,
-    get_histori_filtered,
-)
+from controller import controller_histori
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
-histori_bp = Blueprint('histori_bp', __name__)
+# import notifikasi
+from controller.notification_controller import kirim_notif_pendamping
 
-# Variabel global untuk koleksi MongoDB histori
-histori_collection = None
+histori_bp = Blueprint('histori', __name__, url_prefix='/histori')
+
 
 def set_db(database):
-    global histori_collection
-    histori_collection = database["histori"]
+    controller_histori.set_db(database)
 
-@histori_bp.route('/histori', methods=['POST'])
-def simpan_histori():
+
+# =========================
+# GET HISTORI USER
+# =========================
+@histori_bp.route('/<user_id>', methods=['GET'])
+@jwt_required()
+def get_user_histori(user_id):
+
+    jwt_user = get_jwt_identity()
+
+    if jwt_user != user_id:
+        return jsonify({
+            "status": "error",
+            "message": "Unauthorized"
+        }), 403
+
+    return controller_histori.get_histori(user_id)
+
+
+# =========================
+# GET STATISTIK HISTORI
+# =========================
+@histori_bp.route('/stats/<user_id>', methods=['GET'])
+@jwt_required()
+def get_histori_stats(user_id):
+
+    user_histori = controller_histori.get_histori_by_user(user_id)
+
+    total = len(user_histori)
+
+    avg_accuracy = (
+        sum(h.get("accuracy", 0) for h in user_histori) / total
+        if total > 0 else 0
+    )
+
+    return jsonify({
+        "status": "success",
+        "total": total,
+        "avg_accuracy": avg_accuracy
+    })
+
+
+# =========================
+# POST HISTORI BARU
+# =========================
+@histori_bp.route('', methods=['POST'])
+@jwt_required()
+def create_histori():
+
     data = request.get_json()
-    user_id = data.get("user_id")
-    label = data.get("label")
-    accuracy = data.get("accuracy")
-    tanggal = datetime.utcnow()
 
-    if not all([user_id, label, accuracy is not None]):
-        return jsonify({"message": "Data tidak lengkap"}), 400
+    if not data:
+        return jsonify({
+            "status": "error",
+            "message": "Data kosong"
+        }), 400
 
-    histori_baru = {
-        "user_id": user_id,
-        "label": label,
-        "accuracy": float(accuracy),
-        "tanggal": tanggal
-    }
+    # validasi user
+    jwt_user = get_jwt_identity()
 
-    histori_collection.insert_one(histori_baru)
-    return jsonify({"message": "Histori berhasil disimpan"}), 201
+    if jwt_user != data.get("user_id"):
+        return jsonify({
+            "status": "error",
+            "message": "Unauthorized"
+        }), 403
 
-@histori_bp.route('/histori/<string:user_id>', methods=['GET'])
-def tampilkan_histori(user_id):
-    if histori_collection is None:
-        return jsonify({"error": "Database belum diinisialisasi"}), 500
-    data = get_histori(histori_collection, user_id)
-    return jsonify(data), 200
+    # simpan histori
+    result, status = controller_histori.save_histori(data)
 
-@histori_bp.route('/histori/stats/<string:user_id>', methods=['GET'])
-def histori_stats(user_id):
-    if histori_collection is None:
-        return jsonify({"error": "Database belum diinisialisasi"}), 500
-    stats = get_histori_stats(histori_collection, user_id)
-    return jsonify(stats), 200
+    # jika berhasil simpan histori
+    if status == 201:
 
-@histori_bp.route('/histori/filter/<string:filter_type>', methods=['GET'])
-def histori_filtered(filter_type):
-    user_id = request.args.get("user_id")
-    if not user_id:
-        return jsonify({"message": "User ID is required"}), 400
-    if histori_collection is None:
-        return jsonify({"error": "Database belum diinisialisasi"}), 500
+        try:
+            kirim_notif_pendamping(
+                data["user_id"],
+                data["label"],
+                data["accuracy"]
+            )
+        except Exception as e:
+            print("Gagal kirim notifikasi:", e)
 
-    data = get_histori_filtered(histori_collection, user_id, filter_type)
-    return jsonify(data), 200
+    return jsonify(result), status

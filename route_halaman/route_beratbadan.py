@@ -1,0 +1,267 @@
+from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity
+from bson import ObjectId
+from datetime import datetime
+from models.berat_badan_model import BeratBadan
+from models.data_kehamilan_model import DataKehamilan
+from models.datauser_model import User
+
+# Blueprint
+berat_badan_bp = Blueprint("berat_badan_bp", __name__)
+
+# Set DB jika perlu dari app.py
+def set_db(database):
+    BeratBadan.set_db(database)
+    DataKehamilan.set_db(database)
+
+# ======================
+# HELPER HITUNG MINGGU
+# ======================
+def get_minggu_kehamilan(tanggal, hpht):
+    selisih = (tanggal - hpht).days
+    return (selisih // 7) + 1
+
+# ======================
+# SUBMIT BERAT BADAN (FIX)
+# ======================
+@berat_badan_bp.route("", methods=["POST"])
+@jwt_required()
+def submit_berat_badan_route():
+    try:
+        user_id = str(get_jwt_identity())
+        data = request.get_json()
+
+        berat = data.get("berat_badan")
+        tanggal_str = data.get("tanggal")
+
+        if berat is None:
+            return jsonify({"message": "Berat badan wajib diisi"}), 400
+
+        if not tanggal_str:
+            return jsonify({"message": "Tanggal wajib diisi"}), 400
+
+        tanggal = datetime.strptime(tanggal_str, "%Y-%m-%d")
+
+        # ======================
+        # HANDLE ROLE (PENTING 🔥)
+        # ======================
+        try:
+            user = User.find_by_id(user_id)
+        except:
+            user = None
+
+        target_user_id = user_id
+
+        if isinstance(user, dict) and user.get("role") == "pendamping":
+            if user.get("partner_id"):
+                target_user_id = str(user["partner_id"])
+
+        # ======================
+        # AMBIL DATA KEHAMILAN
+        # ======================
+        kehamilan = DataKehamilan.find_by_user(target_user_id)
+
+        if not kehamilan:
+            return jsonify({"message": "Data kehamilan belum ada"}), 400
+
+        hpht = datetime.strptime(kehamilan["hpht"], "%Y-%m-%d")
+
+        minggu_input = get_minggu_kehamilan(tanggal, hpht)
+
+        # ======================
+        # CEK DUPLIKAT MINGGU (SUPER KETAT 🔥)
+        # ======================
+        bb_list = BeratBadan.find_by_user(target_user_id) or []
+
+        for item in bb_list:
+            tgl = item.get("tanggal")
+
+            if not isinstance(tgl, datetime):
+                continue
+
+            minggu = get_minggu_kehamilan(tgl, hpht)
+
+            if minggu == minggu_input:
+                return jsonify({
+                    "message": f"Minggu ke-{minggu_input} sudah diinput",
+                    "minggu": minggu_input,
+                    "error_code": "DUPLICATE_WEEK"
+                }), 400
+
+        # ======================
+        # INSERT
+        # ======================
+        entry = {
+            "user_id": ObjectId(target_user_id),
+            "berat_badan": float(berat),
+            "tanggal": tanggal,
+            "created_at": datetime.utcnow()
+        }
+
+        BeratBadan.create(entry)
+
+        return jsonify({
+            "message": "Berhasil ditambahkan",
+            "minggu": minggu_input
+        }), 200
+
+    except Exception as e:
+        print("POST ERROR:", e)
+        return jsonify({"message": "Terjadi kesalahan"}), 500
+    
+# ======================
+# Ambil Riwayat Berat Badan
+# ======================
+@berat_badan_bp.route("", methods=["GET"])
+@jwt_required()
+def get_riwayat_berat_badan_route():
+    try:
+        user_id = str(get_jwt_identity())
+
+        # ======================
+        # CEK ROLE
+        # ======================
+        try:
+            user = User.find_by_id(user_id)
+        except:
+            user = None
+
+        target_user_id = user_id
+
+        if isinstance(user, dict) and user.get("role") == "pendamping":
+            if user.get("partner_id"):
+                target_user_id = str(user["partner_id"])
+
+        # ======================
+        # DATA KEHAMILAN
+        # ======================
+        kehamilan = DataKehamilan.find_by_user(target_user_id)
+
+        if not kehamilan:
+            return jsonify([])
+
+        hpht = datetime.strptime(kehamilan["hpht"], "%Y-%m-%d")
+
+        # ======================
+        # AMBIL DATA BB
+        # ======================
+        bb_list = BeratBadan.find_by_user(target_user_id) or []
+
+        minggu_map = {}  # 🔥 KUNCI FIX
+
+        # ======================
+        # DATA NORMAL
+        # ======================
+        for d in bb_list:
+            if not isinstance(d, dict):
+                continue
+
+            tgl = d.get("tanggal")
+
+            if not isinstance(tgl, datetime):
+                continue
+
+            minggu = get_minggu_kehamilan(tgl, hpht)
+
+            # ❌ SKIP kalau minggu sudah ada
+            if minggu in minggu_map:
+                continue
+
+            minggu_map[minggu] = {
+                "_id": str(d.get("_id")),
+                "berat_badan": float(d.get("berat_badan") or 0),
+                "tanggal": tgl.strftime("%Y-%m-%d")
+            }
+
+        # ======================
+        # SEED KEHAMILAN
+        # ======================
+        try:
+            seed_bb = float(kehamilan.get("berat_badan") or 0)
+            created = kehamilan.get("created_at")
+
+            if isinstance(created, datetime):
+                minggu_seed = get_minggu_kehamilan(created, hpht)
+
+                if minggu_seed not in minggu_map:
+                    minggu_map[minggu_seed] = {
+                        "berat_badan": seed_bb,
+                        "tanggal": created.strftime("%Y-%m-%d")
+                    }
+
+        except Exception as e:
+            print("Seed error:", e)
+
+        # ======================
+        # CONVERT + SORT
+        # ======================
+        result = list(minggu_map.values())
+
+        result = sorted(
+            result,
+            key=lambda x: datetime.strptime(x["tanggal"], "%Y-%m-%d")
+        )
+
+        return jsonify(result)
+
+    except Exception as e:
+        print("🔥 ERROR GET BB:", str(e))
+        return jsonify([]), 200
+    
+@berat_badan_bp.route("/<id>", methods=["PUT"])
+@jwt_required()
+def update_berat_badan(id):
+    try:
+        user_id = get_jwt_identity()
+        data = request.get_json()
+
+        berat = data.get("berat_badan")
+        tanggal = data.get("tanggal")
+
+        if not berat:
+            return jsonify({"message": "Berat wajib diisi"}), 400
+
+        update_data = {
+            "berat_badan": float(berat)
+        }
+
+        if tanggal:
+            try:
+                update_data["tanggal"] = datetime.strptime(tanggal, "%Y-%m-%d")
+            except:
+                update_data["tanggal"] = datetime.utcnow()
+
+        result = BeratBadan.update(
+            id=id,
+            data=update_data,
+            user_id=user_id
+        )
+
+        if result.matched_count == 0:
+            return jsonify({"message": "Data tidak ditemukan"}), 404
+
+        return jsonify({"message": "Berhasil diupdate"}), 200
+
+    except Exception as e:
+        print("UPDATE ERROR:", e)
+        return jsonify({"message": "Error update"}), 500
+    
+@berat_badan_bp.route("/<id>", methods=["DELETE"])
+@jwt_required()
+def delete_berat_badan(id):
+    try:
+        user_id = get_jwt_identity()
+
+        result = BeratBadan.delete(
+            id=id,
+            user_id=user_id
+        )
+
+        if result.deleted_count == 0:
+            return jsonify({"message": "Data tidak ditemukan"}), 404
+
+        return jsonify({"message": "Berhasil dihapus"}), 200
+
+    except Exception as e:
+        print("DELETE ERROR:", e)
+        return jsonify({"message": "Error delete"}), 500

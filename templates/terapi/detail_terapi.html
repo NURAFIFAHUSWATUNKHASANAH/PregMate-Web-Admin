@@ -1,17 +1,60 @@
 {% extends 'layouts/layout.html' %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/terapi.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
 {% block content %}
-  <div class="container">
-    <h1>Detail Terapi</h1>
-    <p><strong>Nama:</strong> {{ terapi.nama }}</p>
-    <p><strong>Deskripsi:</strong> {{ terapi.deskripsi }}</p>
-    <p><strong>Video URL:</strong> <a href="{{ terapi.video_url }}" target="_blank">{{ terapi.video_url }}</a></p>
-    <p><strong>Model ID:</strong> {{ terapi.model_id }}</p>
-    <p><strong>Landmark Referensi ID:</strong> {{ terapi.landmark_referensi_id }}</p>
-    <p><strong>Gambar:</strong><br>
-      <img src="/{{ terapi.gambar }}" width="300" />
-    </p>
-    <p><strong>Peringatan:</strong> {{ terapi.peringatan }}</p>
-    <a href="{{ url_for('terapi.index_terapi') }}">Kembali</a>
-  </div>
+<div class="detail-card">
+    <div class="terapi-header-wrapper">
+        <div class="terapi-title-group">
+            <i class="fas fa-hand-holding-heart"></i>
+            <div>
+                <h2 style="margin:0;">{{ terapi.nama }}</h2>
+                <span class="status-badge badge-success">Data Aktif</span>
+            </div>
+        </div>
+        <a href="{{ url_for('terapi.index_terapi') }}" class="btn-cancel" style="padding: 10px 15px; background: #f1f5f9; border-radius: 10px;">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </a>
+    </div>
+
+    <div class="detail-content" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; margin-top: 20px;">
+        <div class="detail-img-wrapper" style="margin:0;">
+            <img src="/{{ terapi.gambar }}" alt="{{ terapi.nama }}" class="terapi-img" style="height: auto; width: 100%;">
+            
+            <div style="margin-top: 20px; padding: 15px; background: #fff1f2; border-radius: 12px; border: 1px solid #fecaca;">
+                <label style="color: #e11d48; font-weight: 700; font-size: 0.7rem; text-transform: uppercase;"><i class="fas fa-exclamation-circle"></i> Peringatan</label>
+                <p style="margin: 5px 0 0; font-size: 0.85rem; color: #9f1239;">{{ terapi.peringatan if terapi.peringatan else '-' }}</p>
+            </div>
+        </div>
+
+        <div>
+            <div class="info-section" style="margin-bottom: 25px;">
+                <label style="font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem;">Deskripsi Gerakan</label>
+                <p style="font-size: 1rem; line-height: 1.6; color: var(--text-main); margin-top: 10px;">
+                    {{ terapi.deskripsi }}
+                </p>
+            </div>
+
+            <!-- <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                    <label style="display:block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">MODEL ID</label>
+                    <code style="color: var(--primary); font-weight: 600;">{{ terapi.model_id }}</code>
+                </div>
+                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
+                    <label style="display:block; font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">LANDMARK ID</label>
+                    <code style="color: var(--primary); font-weight: 600;">{{ terapi.landmark_referensi_id }}</code>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <a href="{{ terapi.video_url }}" target="_blank" class="btn-submit" style="display: inline-flex; align-items: center; gap: 10px; text-decoration: none; background: #000;">
+                    <i class="fab fa-youtube"></i> Tonton Video Referensi
+                </a>
+            </div> -->
+        </div>
+    </div>
+</div>
 {% endblock %}

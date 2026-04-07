@@ -63,6 +63,27 @@ def check_schedule(db):
         except Exception as e:
             print(f"❌ Error memproses jadwal: {e}")
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from controller.notification_controller import cek_latihan_harian
+
+
+def start_scheduler(db):
+
+    scheduler = BackgroundScheduler()
+
+    # jalankan setiap hari jam 19:00
+    scheduler.add_job(
+        cek_latihan_harian,
+        "cron",
+        hour=17,
+        minute=10,
+        args=[db]
+    )
+
+    scheduler.start()
+
+    print("Scheduler pengingat latihan aktif")
+
 def start_scheduler(db):
     scheduler = BackgroundScheduler()
     scheduler.add_job(lambda: check_schedule(db), 'interval', minutes=1)

@@ -5,7 +5,6 @@ from bson import ObjectId
 from db_config import mongo  # pastikan koneksi db-nya sudah disiapkan
 from flask import jsonify
 
-
 keluhan_collection = None
 terapi_collection = None
 
@@ -23,7 +22,6 @@ def tambah_keluhan():
         nama = request.form['nama']
         deskripsi = request.form['deskripsi']
         terapi_ids = request.form.getlist('rekomendasi_terapi_id')
-
         keluhan_collection.insert_one({
             'nama': nama,
             'deskripsi': deskripsi,
@@ -76,63 +74,6 @@ def get_all_keluhan():
         })
 
     return jsonify(result)
-
-# def get_terapi_by_ids():
-#     terapi_ids = request.args.get("ids")
-    
-#     if not terapi_ids:
-#         return jsonify({"error": "ids are required"}), 400
-
-#     # Pisahkan ID berdasarkan koma
-#     ids_list = terapi_ids.split(',')
-    
-#     try:
-#         # Ubah ke ObjectId jika perlu dan lakukan query ke database
-#         object_ids = [ObjectId(id) for id in ids_list]
-#         terapies = terapi_collection.find({"_id": {"$in": object_ids}})
-#     except Exception as e:
-#         return jsonify({"error": f"Invalid ObjectId: {e}"}), 400
-
-#     result = []
-#     for terapi in terapies:
-#         result.append({
-#             "_id": str(terapi["_id"]),
-#             "nama": terapi["nama"],
-#             "deskripsi": terapi.get("deskripsi", ""),
-#             "gambar": terapi.get("gambar", ""),
-#             "peringatan": terapi.get("peringatan", "Lakukan dengan hati-hati"),
-#         })
-
-#     return jsonify(result)
-
-# def get_terapi_by_id():
-#     terapi_ids = request.args.get("id")
-
-#     if not terapi_ids:
-#         return jsonify({"error": "id is required"}), 400
-
-#     # Pisahkan ID berdasarkan koma
-#     ids_list = terapi_ids.split(',')
-    
-#     try:
-#         # Ubah ke ObjectId jika perlu dan lakukan query ke database
-#         object_ids = [ObjectId(id) for id in ids_list]
-#         terapies = terapi_collection.find({"_id": {"$in": object_ids}})
-#     except Exception as e:
-#         return jsonify({"error": f"Invalid ObjectId: {e}"}), 400
-
-#     result = []
-#     for terapi in terapies:
-#         result.append({
-#             "_id": str(terapi["_id"]),
-#             "nama": terapi["nama"],
-#             "deskripsi": terapi.get("deskripsi", ""),
-#             "gambar": terapi.get("gambar", ""),
-#             "peringatan": terapi.get("peringatan", "Lakukan dengan hati-hati"),
-#         })
-
-#     return jsonify(result)
-
 
 from flask import request, jsonify
 from bson import ObjectId

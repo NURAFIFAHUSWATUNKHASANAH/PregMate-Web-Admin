@@ -40,7 +40,7 @@ def login_admin():
             session['access_token'] = access_token
             session['username'] = admin['username']
             flash("Login berhasil", "success")
-            return redirect(url_for('admin_bp.dashboard_admin'))
+            return redirect(url_for('dashboard.index'))
 
         flash("Username atau password salah", "danger")
         return redirect(url_for('admin_bp.login_admin'))

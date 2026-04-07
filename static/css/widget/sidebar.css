@@ -1,21 +1,120 @@
 .sidebar {
-    width: 200px;
-    background-color: #f4f4f4;
-    padding: 1em;
-    height: 100vh;
-    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-  }
-  .sidebar ul {
-    list-style: none;
-    padding: 0;
-  }
-  .sidebar ul li a {
-    display: block;
-    padding: 0.5em;
-    color: #333;
-    text-decoration: none;
-  }
-  .sidebar ul li a:hover {
-    background-color: #ddd;
-  }
-  
+  width: 210px; /* Lebar yang lebih proporsional untuk teks + ikon */
+  background-color: var(--white);
+  border-right: 1px solid var(--border);
+  height: calc(100vh - 72px); /* Mengikuti tinggi navbar */
+  position: sticky;
+  top: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 1.5rem 1rem;
+  transition: all 0.3s ease;
+}
+
+.sidebar-content {
+  flex-grow: 1;
+}
+
+.sidebar-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  margin-left: 0.75rem;
+  text-transform: uppercase;
+}
+
+.nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem 0;
+}
+
+.nav-list li {
+  margin-bottom: 4px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-link i {
+  width: 20px;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+/* State: Hover */
+.sidebar-link:hover {
+  background-color: var(--primary-soft);
+  color: var(--primary);
+}
+
+/* State: Active */
+.sidebar-link.active {
+  background-color: var(--primary);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+.sidebar-link.active i {
+  color: var(--white);
+}
+
+/* Link Khusus Logout */
+.logout-link:hover {
+  background-color: #fff1f2; /* Merah sangat muda */
+  color: #e11d48; /* Rose-600 */
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: var(--border);
+  margin: 1.5rem 0.75rem;
+}
+
+/* Sidebar Footer (Upgrade Card) */
+.sidebar-footer {
+  padding-top: 1rem;
+}
+
+.upgrade-card {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.upgrade-card i {
+  color: var(--primary);
+  font-size: 1.2rem;
+}
+
+.upgrade-card p {
+  font-size: 0.75rem;
+  color: var(--text-main);
+  font-weight: 600;
+  margin: 0;
+}
+
+.upgrade-card p span {
+  display: block;
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-weight: 400;
+}

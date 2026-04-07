@@ -1,60 +1,152 @@
-.container {
-  margin-top: 30px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+/* Container Utama */
+.logs-container {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-.judul-histori {
-  margin-bottom: 25px;
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
+/* Header Section */
+.logs-header-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
 }
 
+.logs-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logs-title-group i {
+    background: var(--primary-soft);
+    color: var(--primary);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1.2rem;
+}
+
+.logs-title-group h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+/* Custom DataTables Styling */
+.dataTables_wrapper .dataTables_filter input {
+    border: 1px solid var(--border) !important;
+    border-radius: 10px !important;
+    padding: 8px 12px !important;
+    background: #f8fafc !important;
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+    padding: 5px !important;
+}
+
+/* Table Style Refinement */
 .table-responsive {
-  overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    padding: 0px !important; /* Reset padding default */
+    overflow: hidden;
 }
 
 #logTable {
-  width: 100%;
-  border-collapse: collapse;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    border: none !important;
 }
 
-#logTable thead {
-  background-color: #4CAF50;
-  color: white;
+#logTable thead th {
+    background: #f8fafc !important;
+    padding: 16px !important;
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    color: var(--text-muted) !important;
+    border-bottom: 1px solid var(--border) !important;
 }
 
-#logTable tbody tr:hover {
-  background-color: #f9f9f9;
-}
-
-#logTable th,
 #logTable td {
-  padding: 10px;
-  text-align: left;
-  vertical-align: middle;
+    padding: 14px 16px !important;
+    font-size: 0.85rem !important;
+    color: var(--text-main) !important;
+    border-bottom: 1px solid var(--border) !important;
+    vertical-align: middle !important;
 }
 
-.btn-danger.btn-sm {
-  padding: 5px 12px;
-  font-size: 12px;
-  border-radius: 4px;
-}
-.judul-histori {
-  text-align: center;
-  color: #333;
-  margin: 30px 0 20px 0;
-  font-size: 24px;
-  font-weight: 600;
+/* Status Badge Modern */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
-.table-responsive {
-  overflow-x: auto;
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+.status-success { background: #dcfce7; color: #15803d; }
+.status-failed { background: #fee2e2; color: #b91c1c; }
+
+/* Action Button Hapus */
+.btn-delete-log {
+    background: #fff1f2;
+    color: #e11d48;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-delete-log:hover {
+    background: #e11d48;
+    color: white;
+}
+
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-input {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    font-size: 0.9rem;
+    width: 250px;
+    transition: 0.2s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.btn-search {
+    background: var(--primary);
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
 }

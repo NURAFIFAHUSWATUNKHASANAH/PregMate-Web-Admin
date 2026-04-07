@@ -1,0 +1,229 @@
+from datetime import datetime
+
+from firebase_admin import messaging
+
+users_collection = None
+informasi_collection = None
+
+def set_db(database):
+
+    global users_collection, informasi_collection
+
+    users_collection = database["users"]
+    informasi_collection = database["informasi"]
+
+
+def kirim_notif_pendamping(user_id, label, accuracy):
+
+    # 🔥 PASTIKAN user_id selalu string benar
+    user_id = str(user_id)
+
+    pendamping_list = list(users_collection.find({
+        "role": "pendamping",
+        "partner_id": user_id
+    }))
+
+    tokens = []
+
+    for p in pendamping_list:
+        token = p.get("fcmToken")
+
+        print("DEBUG pendamping:", p.get("nama"))
+        print("DEBUG token:", token)
+        print("DEBUG partner_id match:", p.get("partner_id"))
+
+        if token:
+            tokens.append(token)
+
+    if not tokens:
+        print("Tidak ada token pendamping")
+        return
+
+    success = 0
+
+    for token in tokens:
+        try:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title="Latihan Selesai",
+                    body=f"Ibu hamil menyelesaikan latihan {label} dengan akurasi {accuracy:.1f}%"
+                ),
+                token=token
+            )
+
+            messaging.send(message)
+            success += 1
+
+        except Exception as e:
+            print("Gagal kirim notif:", e)
+
+    print("Notifikasi terkirim:", success)
+
+    # 🔥 FIX PENTING: pastikan user_id yang disimpan benar-benar ibu yang login
+    informasi_collection.insert_one({
+        "user_id": str(user_id),   # 🔥 FIX DI SINI
+        "label": label,
+        "accuracy": accuracy,
+        "pesan": f"Ibu hamil menyelesaikan latihan {label} dengan akurasi {accuracy:.1f}%",
+        "tanggal": datetime.utcnow()
+    })
+
+def kirim_notif_mood(user_id, pesan):
+
+    user_id = str(user_id)
+
+    pendamping_list = list(users_collection.find({
+        "role": "pendamping",
+        "partner_id": user_id
+    }))
+
+    tokens = []
+
+    for p in pendamping_list:
+        token = p.get("fcmToken")
+        if token:
+            tokens.append(token)
+
+    if not tokens:
+        print("Tidak ada token pendamping")
+        return
+
+    success = 0
+
+    for token in tokens:
+        try:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title="Mood Bunda Hari Ini 🤰",
+                    body=pesan[:500]
+                ),
+                token=token
+            )
+
+            messaging.send(message)
+            success += 1
+
+        except Exception as e:
+            print("Gagal kirim notif:", e)
+
+    print("Notifikasi terkirim:", success)
+
+    informasi_collection.insert_one({
+        "user_id": user_id,
+        "tipe": "mood",
+        "pesan": pesan,
+        "tanggal": datetime.utcnow()
+    })
+
+def kirim_notif_relaksasi(user_id, label, durasi):
+
+    user_id = str(user_id)
+
+    pendamping_list = list(users_collection.find({
+        "role": "pendamping",
+        "partner_id": user_id
+    }))
+
+    tokens = []
+
+    for p in pendamping_list:
+        token = p.get("fcmToken")
+        if token:
+            tokens.append(token)
+
+    if not tokens:
+        print("Tidak ada token pendamping")
+        return
+
+    pesan = f"Ibu hamil menyelesaikan latihan {label} selama {durasi} menit 🤰"
+
+    success = 0
+
+    for token in tokens:
+        try:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title="Latihan Relaksasi Selesai",
+                    body=pesan
+                ),
+                token=token
+            )
+
+            messaging.send(message)
+            success += 1
+
+        except Exception as e:
+            print("Gagal kirim notif:", e)
+
+    print("Notifikasi terkirim:", success)
+
+    # 🔥 SIMPAN KE KOLEKSI INFORMASI
+    informasi_collection.insert_one({
+        "user_id": user_id,
+        "tipe": "relaksasi",  # 🔥 pembeda penting
+        "label": label,
+        "durasi": durasi,
+        "pesan": pesan,
+        "tanggal": datetime.utcnow()
+    })
+    
+    print("MASUK FUNGSI RELAKSASI")
+
+
+def kirim_notif_pengingat_harian(user):
+
+    user_id = str(user.get("_id")) if user.get("_id") else None
+    token = user.get("fcmToken")
+
+    if not token:
+        return
+
+    try:
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title="Pengingat Latihan Harian",
+                body="Hari ini kamu belum melakukan latihan. Yuk lakukan latihan untuk kesehatan ibu dan bayi 🤰"
+            ),
+            token=token
+        )
+
+        messaging.send(message)
+
+        print("Notif pengingat terkirim ke:", user.get("nama"))
+
+    except Exception as e:
+        print("Gagal kirim notif:", e)
+
+def cek_latihan_harian(db):
+
+    users = db["users"]
+    histori = db["histori"]
+
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    ibu_list = list(users.find({"role": "ibu"}))
+
+    for ibu in ibu_list:
+
+        user_id = str(ibu["_id"])
+
+        latihan_hari_ini = histori.find_one({
+            "user_id": user_id,
+            "tanggal": {"$regex": today}
+        })
+
+        if not latihan_hari_ini:
+
+            print("Tidak ada latihan hari ini:", ibu["nama"])
+
+            # kirim ke ibu
+            kirim_notif_pengingat_harian(ibu)
+
+            # ambil pendamping yang benar-benar pasangan ibu ini
+            pendamping = users.find_one({
+                "partner_id": user_id,
+                "role": "pendamping"
+            })
+
+            if pendamping:
+                kirim_notif_pengingat_harian(pendamping)

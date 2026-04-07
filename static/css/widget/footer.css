@@ -1,51 +1,78 @@
-/* Styling Footer */
+/* Footer Modern & Profesional */
 .footer {
-  background-color: #2c3e50;
-  color: white;
-  padding: 30px 20px;
-  text-align: center;
-  font-size: 16px;
-  margin-top: 30px;
+    background: var(--white);
+    padding: 1.5rem 2rem;
+    border-top: 1px solid var(--border);
+    margin-top: 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
 }
 
-.footer p {
-  margin: 0;
+.footer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
-.footer a {
-  color: #3498db;
-  text-decoration: none;
-  font-weight: bold;
+.footer-info p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    font-weight: 600;
 }
 
-.footer a:hover {
-  text-decoration: underline;
+.footer-info .version {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
-.footer .footer-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 20px;
+.footer-links {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 }
 
-.footer .footer-content div {
-  margin: 10px;
+.footer-link-item {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
-.footer .social-links {
-  display: flex;
-  gap: 15px;
-  justify-content: center;
+.footer-link-item i {
+    font-size: 1rem;
+    color: var(--primary);
+    opacity: 0.7;
 }
 
-.footer .social-links a {
-  font-size: 24px;
-  color: white;
-  transition: color 0.3s ease;
+.footer-link-item:hover {
+    color: var(--primary);
+    transform: translateY(-1px);
 }
 
-.footer .social-links a:hover {
-  color: #3498db;
+.footer-copyright {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* Responsive Footer */
+@media (max-width: 768px) {
+    .footer {
+        flex-direction: column;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .footer-links {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
 }

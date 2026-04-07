@@ -12,8 +12,8 @@ OTP_EXPIRE_MINUTES = 10
 def send_email(to_email, subject, message):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    smtp_user = "rizkiekamulyani123@gmail.com"        # Ganti sesuai email kamu
-    smtp_password = "ykfa bxvy ihly thqm"     # Ganti sesuai password/app password
+    smtp_user = "nurafifahuswatunkh@gmail.com"        # Ganti sesuai email kamu
+    smtp_password = "epkw hpxz igfv qyrx"     # Ganti sesuai password/app password
 
     msg = MIMEText(message)
     msg['Reply-To'] = smtp_user

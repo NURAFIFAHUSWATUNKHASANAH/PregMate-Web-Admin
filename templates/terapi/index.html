@@ -1,48 +1,68 @@
 {% extends 'layouts/layout.html' %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/terapi.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/terapi.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
-  <div class="container">
-    <h1 class="page-title">Daftar Terapi</h1>
+<div class="terapi-container">
+    <div class="terapi-header-wrapper">
+        <div class="terapi-title-group">
+            <i class="fas fa-hand-holding-heart"></i>
+            <div>
+                <h2>Daftar Terapi</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Kelola teknik dan gerakan pemulihan</p>
+            </div>
+        </div>
 
-    <div class="action-container">
-      <a class="btn-add" href="{{ url_for('terapi.create_terapi') }}">
-        <i class="fa fa-plus"></i> Tambah Terapi
-      </a>
+        <a href="{{ url_for('terapi.create_terapi') }}" class="btn-add-modern">
+            <i class="fas fa-plus"></i>
+            <span>Tambah Terapi</span>
+        </a>
     </div>
 
     <div class="table-responsive">
-      <table class="terapi-table">
-        <thead>
-          <tr>
-            <th>Nama Terapi</th>
-            <th>Deskripsi</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for terapi in terapi_list %}
-          <tr>
-            <td>{{ terapi.nama }}</td>
-            <td>{{ terapi.deskripsi }}</td>
-            <td>
-              <a class="btn btn-detail" href="{{ url_for('terapi.detail_terapi', id=terapi._id) }}">
-                <i class="fa fa-info-circle"></i> Detail
-              </a>
-              <a class="btn btn-edit" href="{{ url_for('terapi.edit_terapi', id=terapi._id) }}">
-                <i class="fa fa-pencil"></i> Edit
-              </a>
-              <a class="btn btn-delete" href="{{ url_for('terapi.hapus_terapi', id=terapi._id) }}">
-                <i class="fa fa-trash"></i> Hapus
-              </a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+        <table class="terapi-table">
+            <thead>
+                <tr>
+                    <th width="250">Nama Terapi</th>
+                    <th>Deskripsi Ringkas</th>
+                    <th width="180" style="text-align:center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for terapi in terapi_list %}
+                <tr>
+                    <td>
+                        <strong style="color: var(--text-main);">{{ terapi.nama }}</strong>
+                    </td>
+                    <td style="color: var(--text-muted); line-height: 1.5;">
+                        {{ terapi.deskripsi|truncate(150) }}
+                    </td>
+                    <td>
+                        <div class="terapi-action-buttons">
+                            <a href="{{ url_for('terapi.detail_terapi', id=terapi._id) }}" class="btn-action btn-info" title="Detail">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ url_for('terapi.edit_terapi', id=terapi._id) }}" class="btn-action btn-edit" title="Edit">
+                                <i class="fas fa-pen-to-square"></i>
+                            </a>
+                            <a href="#" class="btn-action btn-delete btn-hapus" 
+                               data-url="{{ url_for('terapi.hapus_terapi', id=terapi._id) }}"
+                               data-nama="{{ terapi.nama }}" title="Hapus">
+                                <i class="fas fa-trash-can"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
 {% endblock %}
