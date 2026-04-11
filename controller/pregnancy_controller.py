@@ -5,6 +5,7 @@ from bson import ObjectId
 
 from models.datauser_model import User
 from models.data_kehamilan_model import DataKehamilan
+from models.kalkulator_model import KalkulatorModel
 
 
 def hitung_hpl(hpht):
@@ -273,9 +274,22 @@ def update_kehamilan():
         if data.get("berat_badan") is not None:
             update_data["berat_badan"] = data.get("berat_badan")
 
+        # ✅ UPDATE DATA KEHAMILAN
         result = DataKehamilan.db["data_kehamilan"].update_one(
             {"user_id": ObjectId(user_id)},
             {"$set": update_data}
+        )
+
+        # 🔥 SYNC KE KALKULATOR (FIX DI SINI)
+        KalkulatorModel.collection.update_one(
+            {"user_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "hpht": hpht,
+                    "hpl": hpl,
+                    "updated_at": datetime.utcnow()
+                }
+            }
         )
 
         if result.matched_count == 0:

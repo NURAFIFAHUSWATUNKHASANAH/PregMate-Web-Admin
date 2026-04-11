@@ -76,6 +76,9 @@ from route_halaman.route_informasi import informasi_bp, set_db as set_informasi_
 from controller.notification_controller import kirim_notif_mood, kirim_notif_pendamping, kirim_notif_relaksasi, set_db as set_notif_db
 from route_halaman.route_admin_user import admin_user
 from models.craving_model import Craving
+from route_halaman.route_kalkulator import kalkulator_bp
+from models.kalkulator_model import KalkulatorModel
+
 
 set_userlog_db(db)
 # Set DB di controller dan model
@@ -97,7 +100,7 @@ set_meditation_db(db)
 set_informasi_db(db)
 set_notif_db(db)
 Craving.set_db(db)
-
+KalkulatorModel.set_db(db)
 
 # ============================== BLUEPRINT REGISTRASI ==============================
 
@@ -134,7 +137,8 @@ def register_blueprints():
     app.register_blueprint(informasi_bp)
     app.register_blueprint(admin_user)
     app.register_blueprint(craving_bp, url_prefix="/api")
-
+    app.register_blueprint(kalkulator_bp)
+    
 register_blueprints()
 
 # ============================== ROUTES UTAMA ==============================

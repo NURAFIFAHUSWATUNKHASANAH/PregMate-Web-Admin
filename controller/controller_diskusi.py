@@ -108,26 +108,24 @@ def like_post(post_id):
 
 def update_post(post_id):
 
-    data = request.form
-
-    content = data.get("content")
+    # 🔥 ambil dari JSON atau FORM
+    content = request.form.get("content") or request.json.get("content")
 
     image_url = None
 
     if "image" in request.files:
-
         file = request.files["image"]
 
         if file.filename != "":
             filename = secure_filename(file.filename)
-
             path = os.path.join(UPLOAD_FOLDER, filename)
-
             file.save(path)
-
             image_url = f"/static/uploads/{filename}"
 
-    update_data = {"content": content}
+    update_data = {}
+
+    if content is not None:
+        update_data["content"] = content
 
     if image_url:
         update_data["image"] = image_url
@@ -138,7 +136,6 @@ def update_post(post_id):
     )
 
     return jsonify({"message": "Post updated"})
-
 
 def delete_post(post_id):
 
