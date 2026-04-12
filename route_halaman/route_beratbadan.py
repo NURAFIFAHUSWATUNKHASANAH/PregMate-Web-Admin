@@ -34,6 +34,9 @@ def submit_berat_badan_route():
         berat = data.get("berat_badan")
         tanggal_str = data.get("tanggal")
 
+        # ======================
+        # VALIDASI INPUT
+        # ======================
         if berat is None:
             return jsonify({"message": "Berat badan wajib diisi"}), 400
 
@@ -43,7 +46,7 @@ def submit_berat_badan_route():
         tanggal = datetime.strptime(tanggal_str, "%Y-%m-%d")
 
         # ======================
-        # HANDLE ROLE (PENTING 🔥)
+        # HANDLE ROLE (PENDAMPING)
         # ======================
         try:
             user = User.find_by_id(user_id)
@@ -64,14 +67,16 @@ def submit_berat_badan_route():
         if not kehamilan:
             return jsonify({"message": "Data kehamilan belum ada"}), 400
 
+        kehamilan_id = kehamilan.get("_id")
+
         hpht = datetime.strptime(kehamilan["hpht"], "%Y-%m-%d")
 
         minggu_input = get_minggu_kehamilan(tanggal, hpht)
 
         # ======================
-        # CEK DUPLIKAT MINGGU (SUPER KETAT 🔥)
+        # CEK DUPLIKAT MINGGU
         # ======================
-        bb_list = BeratBadan.find_by_user(target_user_id) or []
+        bb_list = BeratBadan.find_by_user(target_user_id, kehamilan_id) or []
 
         for item in bb_list:
             tgl = item.get("tanggal")
@@ -89,10 +94,11 @@ def submit_berat_badan_route():
                 }), 400
 
         # ======================
-        # INSERT
+        # INSERT DATA
         # ======================
         entry = {
             "user_id": ObjectId(target_user_id),
+            "kehamilan_id": ObjectId(kehamilan_id),
             "berat_badan": float(berat),
             "tanggal": tanggal,
             "created_at": datetime.utcnow()
@@ -109,9 +115,6 @@ def submit_berat_badan_route():
         print("POST ERROR:", e)
         return jsonify({"message": "Terjadi kesalahan"}), 500
     
-# ======================
-# Ambil Riwayat Berat Badan
-# ======================
 @berat_badan_bp.route("", methods=["GET"])
 @jwt_required()
 def get_riwayat_berat_badan_route():
@@ -133,7 +136,7 @@ def get_riwayat_berat_badan_route():
                 target_user_id = str(user["partner_id"])
 
         # ======================
-        # DATA KEHAMILAN
+        # DATA KEHAMILAN AKTIF
         # ======================
         kehamilan = DataKehamilan.find_by_user(target_user_id)
 
@@ -141,13 +144,12 @@ def get_riwayat_berat_badan_route():
             return jsonify([])
 
         hpht = datetime.strptime(kehamilan["hpht"], "%Y-%m-%d")
+        kehamilan_id = kehamilan.get("_id")
 
-        # ======================
-        # AMBIL DATA BB
-        # ======================
-        bb_list = BeratBadan.find_by_user(target_user_id) or []
+        # ✅ FIX: pakai model
+        bb_list = BeratBadan.find_by_user(target_user_id, kehamilan_id)
 
-        minggu_map = {}  # 🔥 KUNCI FIX
+        minggu_map = {}
 
         # ======================
         # DATA NORMAL
@@ -163,7 +165,6 @@ def get_riwayat_berat_badan_route():
 
             minggu = get_minggu_kehamilan(tgl, hpht)
 
-            # ❌ SKIP kalau minggu sudah ada
             if minggu in minggu_map:
                 continue
 
@@ -178,7 +179,7 @@ def get_riwayat_berat_badan_route():
         # ======================
         try:
             seed_bb = float(kehamilan.get("berat_badan") or 0)
-            created = kehamilan.get("created_at")
+            created = kehamilan.get("start_date")
 
             if isinstance(created, datetime):
                 minggu_seed = get_minggu_kehamilan(created, hpht)
@@ -193,12 +194,10 @@ def get_riwayat_berat_badan_route():
             print("Seed error:", e)
 
         # ======================
-        # CONVERT + SORT
+        # SORT
         # ======================
-        result = list(minggu_map.values())
-
         result = sorted(
-            result,
+            list(minggu_map.values()),
             key=lambda x: datetime.strptime(x["tanggal"], "%Y-%m-%d")
         )
 
@@ -208,11 +207,15 @@ def get_riwayat_berat_badan_route():
         print("🔥 ERROR GET BB:", str(e))
         return jsonify([]), 200
     
+    
+# ======================
+# UPDATE
+# ======================
 @berat_badan_bp.route("/<id>", methods=["PUT"])
 @jwt_required()
 def update_berat_badan(id):
     try:
-        user_id = get_jwt_identity()
+        user_id = str(get_jwt_identity())
         data = request.get_json()
 
         berat = data.get("berat_badan")
@@ -220,6 +223,13 @@ def update_berat_badan(id):
 
         if not berat:
             return jsonify({"message": "Berat wajib diisi"}), 400
+
+        # ambil kehamilan
+        kehamilan = DataKehamilan.find_by_user(user_id)
+        if not kehamilan:
+            return jsonify({"message": "Data kehamilan tidak ditemukan"}), 400
+
+        kehamilan_id = kehamilan.get("_id")
 
         update_data = {
             "berat_badan": float(berat)
@@ -234,7 +244,8 @@ def update_berat_badan(id):
         result = BeratBadan.update(
             id=id,
             data=update_data,
-            user_id=user_id
+            user_id=user_id,
+            kehamilan_id=kehamilan_id
         )
 
         if result.matched_count == 0:
@@ -246,15 +257,25 @@ def update_berat_badan(id):
         print("UPDATE ERROR:", e)
         return jsonify({"message": "Error update"}), 500
     
+# ======================
+# DELETE
+# ======================
 @berat_badan_bp.route("/<id>", methods=["DELETE"])
 @jwt_required()
 def delete_berat_badan(id):
     try:
-        user_id = get_jwt_identity()
+        user_id = str(get_jwt_identity())
+
+        kehamilan = DataKehamilan.find_by_user(user_id)
+        if not kehamilan:
+            return jsonify({"message": "Data kehamilan tidak ditemukan"}), 400
+
+        kehamilan_id = kehamilan.get("_id")
 
         result = BeratBadan.delete(
             id=id,
-            user_id=user_id
+            user_id=user_id,
+            kehamilan_id=kehamilan_id
         )
 
         if result.deleted_count == 0:

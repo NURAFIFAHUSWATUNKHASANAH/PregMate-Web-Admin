@@ -13,11 +13,8 @@ def set_db(database):
     histori_collection = db["histori"]
     users_collection = db["users"]
 
-def get_histori(user_id):
-    """
-    Ambil histori senam yoga.
-    Jika user role = pendamping, ambil histori pasangan (partner_id)
-    """
+def get_histori(user_id, kehamilan_id):
+
     user = users_collection.find_one({"_id": ObjectId(user_id)})
     if not user:
         return jsonify({"status":"error","message":"User tidak ditemukan"}), 404
@@ -30,36 +27,50 @@ def get_histori(user_id):
     else:
         user_id_to_query = user_id
 
-    histori_cursor = histori_collection.find({"user_id": user_id_to_query}).sort("tanggal", -1)
+    histori_cursor = histori_collection.find({
+        "user_id": user_id_to_query,   # ✅ FIX: STRING (tanpa ObjectId)
+        "kehamilan_id": ObjectId(kehamilan_id)
+    }).sort("tanggal", -1)
+
     histori_list = []
+
     for h in histori_cursor:
         histori_list.append({
-        "_id": str(h["_id"]),
-        "user_id": h["user_id"],
-        "label": h.get("label",""),
-        "accuracy": h.get("accuracy",0),
-        "tanggal": h.get("tanggal", datetime.utcnow()).isoformat()  # <- ISO 8601 string
-    })
+            "_id": str(h["_id"]),
+            "user_id": h["user_id"],
+            "kehamilan_id": str(h.get("kehamilan_id")),
+            "label": h.get("label",""),
+            "accuracy": h.get("accuracy",0),
+            "tanggal": h.get("tanggal", datetime.utcnow()).isoformat()
+        })
 
     return jsonify({
         "status": "success",
         "data": histori_list
     })
 
-def get_histori_by_user(user_id):
+def get_histori_by_user(user_id, kehamilan_id):
     """
-    Ambil histori untuk user tertentu (list)
+    Ambil histori user berdasarkan kehamilan tertentu
     """
+
     result = []
-    cursor = histori_collection.find({"user_id": user_id}).sort("tanggal",-1)
+
+    cursor = histori_collection.find({
+        "user_id": (user_id),
+        "kehamilan_id": ObjectId(kehamilan_id)
+    }).sort("tanggal", -1)
+
     for h in cursor:
         result.append({
             "_id": str(h["_id"]),
             "user_id": h["user_id"],
+            "kehamilan_id": h.get("kehamilan_id"),
             "label": h.get("label",""),
             "accuracy": h.get("accuracy",0),
             "tanggal": h.get("tanggal").isoformat() if h.get("tanggal") else None
         })
+
     return result
 
 def save_histori(data):
@@ -67,11 +78,12 @@ def save_histori(data):
     Simpan histori latihan baru ke DB
     """
     user_id = data.get("user_id")
+    kehamilan_id = data.get("kehamilan_id")
     label = data.get("label", "")
     accuracy = data.get("accuracy", 0)
     tanggal_str = data.get("tanggal")
 
-    if not user_id or not label or accuracy is None or not tanggal_str:
+    if not user_id or not kehamilan_id or not label or accuracy is None or not tanggal_str:
         return {"status": "error", "message": "Data tidak lengkap"}, 400
 
     try:
@@ -82,6 +94,7 @@ def save_histori(data):
 
     histori_doc = {
         "user_id": user_id,
+        "kehamilan_id": ObjectId(kehamilan_id),
         "label": label,
         "accuracy": accuracy,
         "tanggal": tanggal
@@ -92,3 +105,4 @@ def save_histori(data):
         return {"status": "success", "message": "Histori tersimpan"}, 201
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
+

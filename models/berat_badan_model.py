@@ -13,18 +13,29 @@ class BeratBadan:
         return cls.db["berat_badan"].insert_one(data)
 
     @classmethod
-    def find_by_user(cls, user_id):
-        return list(cls.db["berat_badan"].find({"user_id": ObjectId(user_id)}).sort("tanggal", 1))
-    
-    @classmethod
-    def update(cls, id, data, user_id):
-        return cls.db["berat_badan"].update_one(
-        {"_id": ObjectId(id), "user_id": ObjectId(user_id)},
-        {"$set": data}
-    )
+    def find_by_user(cls, user_id, kehamilan_id):
+        return list(cls.db["berat_badan"].find({
+            "user_id": ObjectId(user_id),
+            "kehamilan_id": ObjectId(kehamilan_id)
+        }).sort("tanggal", 1))
 
     @classmethod
-    def delete(cls, id, user_id):
+    def update(cls, id, data, user_id, kehamilan_id):
+        return cls.db["berat_badan"].update_one(
+            {
+                "_id": ObjectId(id),
+                "user_id": ObjectId(user_id),
+                "kehamilan_id": ObjectId(kehamilan_id)  # ✅ TAMBAH
+            },
+            {"$set": data}
+        )
+
+    @classmethod
+    def delete(cls, id, user_id, kehamilan_id):
         return cls.db["berat_badan"].delete_one(
-            {"_id": ObjectId(id), "user_id": ObjectId(user_id)}
+            {
+                "_id": ObjectId(id),
+                "user_id": ObjectId(user_id),
+                "kehamilan_id": ObjectId(kehamilan_id)  # ✅ TAMBAH
+            }
         )

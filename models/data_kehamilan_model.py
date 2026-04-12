@@ -15,5 +15,6 @@ class DataKehamilan:
     @classmethod
     def find_by_user(cls, user_id):
         return cls.db["data_kehamilan"].find_one({
-            "user_id": ObjectId(user_id)
+            "user_id": ObjectId(user_id),
+            "status": "active"
         })

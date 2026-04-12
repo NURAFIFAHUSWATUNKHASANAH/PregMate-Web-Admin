@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from bson import ObjectId
 from firebase_admin import messaging
 
 users_collection = None
@@ -13,7 +14,7 @@ def set_db(database):
     informasi_collection = database["informasi"]
 
 
-def kirim_notif_pendamping(user_id, label, accuracy):
+def kirim_notif_pendamping(user_id, label, accuracy, kehamilan_id=None):
 
     # 🔥 PASTIKAN user_id selalu string benar
     user_id = str(user_id)
@@ -62,13 +63,15 @@ def kirim_notif_pendamping(user_id, label, accuracy):
     # 🔥 FIX PENTING: pastikan user_id yang disimpan benar-benar ibu yang login
     informasi_collection.insert_one({
         "user_id": str(user_id),   # 🔥 FIX DI SINI
+        "kehamilan_id": str(kehamilan_id) if kehamilan_id else None,
+        "tipe": "latihan",
         "label": label,
         "accuracy": accuracy,
         "pesan": f"Ibu hamil menyelesaikan latihan {label} dengan akurasi {accuracy:.1f}%",
         "tanggal": datetime.utcnow()
     })
 
-def kirim_notif_mood(user_id, pesan):
+def kirim_notif_mood(user_id, pesan, kehamilan_id=None):
 
     user_id = str(user_id)
 
@@ -88,34 +91,22 @@ def kirim_notif_mood(user_id, pesan):
         print("Tidak ada token pendamping")
         return
 
-    success = 0
-
     for token in tokens:
         try:
             message = messaging.Message(
                 notification=messaging.Notification(
                     title="Mood Bunda Hari Ini 🤰",
-                    body=pesan[:500]
+                    body=pesan  # ✅ hanya versi pendek
                 ),
                 token=token
             )
 
             messaging.send(message)
-            success += 1
 
         except Exception as e:
             print("Gagal kirim notif:", e)
 
-    print("Notifikasi terkirim:", success)
-
-    informasi_collection.insert_one({
-        "user_id": user_id,
-        "tipe": "mood",
-        "pesan": pesan,
-        "tanggal": datetime.utcnow()
-    })
-
-def kirim_notif_relaksasi(user_id, label, durasi):
+def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
 
     user_id = str(user_id)
 
@@ -160,6 +151,7 @@ def kirim_notif_relaksasi(user_id, label, durasi):
     # 🔥 SIMPAN KE KOLEKSI INFORMASI
     informasi_collection.insert_one({
         "user_id": user_id,
+        "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id else None,
         "tipe": "relaksasi",  # 🔥 pembeda penting
         "label": label,
         "durasi": durasi,

@@ -13,13 +13,12 @@ histori_bp = Blueprint('histori', __name__, url_prefix='/histori')
 def set_db(database):
     controller_histori.set_db(database)
 
-
 # =========================
-# GET HISTORI USER
+# GET HISTORI PER KEHAMILAN
 # =========================
-@histori_bp.route('/<user_id>', methods=['GET'])
+@histori_bp.route('/<user_id>/<kehamilan_id>', methods=['GET'])
 @jwt_required()
-def get_user_histori(user_id):
+def get_user_histori(user_id, kehamilan_id):
 
     jwt_user = get_jwt_identity()
 
@@ -29,17 +28,25 @@ def get_user_histori(user_id):
             "message": "Unauthorized"
         }), 403
 
-    return controller_histori.get_histori(user_id)
+    return controller_histori.get_histori(user_id, kehamilan_id)
 
 
 # =========================
-# GET STATISTIK HISTORI
+# GET STATISTIK PER KEHAMILAN
 # =========================
-@histori_bp.route('/stats/<user_id>', methods=['GET'])
+@histori_bp.route('/stats/<user_id>/<kehamilan_id>', methods=['GET'])
 @jwt_required()
-def get_histori_stats(user_id):
+def get_histori_stats(user_id, kehamilan_id):
 
-    user_histori = controller_histori.get_histori_by_user(user_id)
+    jwt_user = get_jwt_identity()
+
+    if jwt_user != user_id:
+        return jsonify({
+            "status": "error",
+            "message": "Unauthorized"
+        }), 403
+
+    user_histori = controller_histori.get_histori_by_user(user_id, kehamilan_id)
 
     total = len(user_histori)
 
@@ -53,6 +60,7 @@ def get_histori_stats(user_id):
         "total": total,
         "avg_accuracy": avg_accuracy
     })
+
 
 
 # =========================
@@ -70,28 +78,44 @@ def create_histori():
             "message": "Data kosong"
         }), 400
 
-    # validasi user
     jwt_user = get_jwt_identity()
 
+    # validasi user
     if jwt_user != data.get("user_id"):
         return jsonify({
             "status": "error",
             "message": "Unauthorized"
         }), 403
 
-    # simpan histori
+    # wajib ada kehamilan_id
+    if not data.get("kehamilan_id"):
+        return jsonify({
+            "status": "error",
+            "message": "kehamilan_id wajib"
+        }), 400
+
     result, status = controller_histori.save_histori(data)
 
-    # jika berhasil simpan histori
     if status == 201:
-
         try:
             kirim_notif_pendamping(
                 data["user_id"],
                 data["label"],
-                data["accuracy"]
+                data["accuracy"],
+                data["kehamilan_id"]
             )
         except Exception as e:
-            print("Gagal kirim notifikasi:", e)
+            print("Notif gagal:", e)
 
     return jsonify(result), status
+
+# =========================
+# GET HISTORI BY KEHAMILAN (UNTUK FLUTTER)
+# =========================
+@histori_bp.route('/by-kehamilan/<kehamilan_id>', methods=['GET'])
+@jwt_required()
+def get_histori_by_kehamilan(kehamilan_id):
+
+    user_id = get_jwt_identity()
+
+    return controller_histori.get_histori(user_id, kehamilan_id)

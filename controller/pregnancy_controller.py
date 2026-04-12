@@ -86,11 +86,8 @@ perkembangan_janin = {
 
 @jwt_required()
 def submit_validasi_kehamilan():
-
     try:
-
         user_id = get_jwt_identity()
-
         data = request.get_json()
 
         hpht = data.get("hpht")
@@ -100,17 +97,34 @@ def submit_validasi_kehamilan():
         if not hpht:
             return jsonify({"message": "HPHT wajib diisi"}), 400
 
+        # 🔥 Cek apakah masih ada kehamilan aktif
+        existing = DataKehamilan.db["data_kehamilan"].find_one({
+            "user_id": ObjectId(user_id),
+            "status": "active"
+        })
+
+        if existing:
+            return jsonify({"message": "Masih ada kehamilan aktif"}), 400
+
+        # 🔥 Tentukan index kehamilan
+        last = DataKehamilan.db["data_kehamilan"].find_one(
+            {"user_id": ObjectId(user_id)},
+            sort=[("kehamilan_ke", -1)]
+        )
+
+        kehamilan_ke = 1 if not last else last["kehamilan_ke"] + 1
+
         hpl = hitung_hpl(hpht)
 
         data_kehamilan = {
-
             "user_id": ObjectId(user_id),
+            "kehamilan_ke": kehamilan_ke,
             "hpht": hpht,
             "hpl": hpl,
             "tinggi_badan": tinggi_badan,
             "berat_badan": berat_badan,
-            "created_at": datetime.utcnow()
-
+            "status": "active",
+            "start_date": datetime.utcnow()
         }
 
         DataKehamilan.create(data_kehamilan)
@@ -119,15 +133,13 @@ def submit_validasi_kehamilan():
 
         return jsonify({
             "message": "Data kehamilan berhasil disimpan",
+            "kehamilan_ke": kehamilan_ke,
             "hpl": hpl
         }), 200
 
     except Exception as e:
-
         print(e)
-
         return jsonify({"message": "Terjadi kesalahan"}), 500
-
 
 # ===============================
 # DASHBOARD KEHAMILAN
@@ -140,7 +152,10 @@ def dashboard_kehamilan():
 
         user_id = get_jwt_identity()
 
-        data = DataKehamilan.find_by_user(user_id)
+        data = DataKehamilan.db["data_kehamilan"].find_one({
+    "user_id": ObjectId(user_id),
+    "status": "active"
+})
 
         if not data:
 
@@ -164,7 +179,7 @@ def dashboard_kehamilan():
         )
 
         return jsonify({
-
+            "kehamilan_id": str(data["_id"]),
             "usia_kehamilan_minggu": minggu,
             "usia_kehamilan_hari": hari,
             "trimester": trimester,
@@ -176,7 +191,8 @@ def dashboard_kehamilan():
 
             "ukuran_janin": perkembangan["ukuran"],
             "perkembangan_janin": perkembangan["perkembangan"],
-            "tips_kesehatan": perkembangan["tips"]
+            "tips_kesehatan": perkembangan["tips"],
+            "status": data.get("status", "active")
 
         })
 
@@ -189,14 +205,77 @@ def dashboard_kehamilan():
         }), 500
     
 @jwt_required()
-def dashboard_kehamilan_pasangan():
-
+def pregnancy_history():
     try:
-
         user_id = get_jwt_identity()
 
-        # cari user pendamping
+        # 🔥 AMBIL DATA USER
         user = User.find_by_id(user_id)
+
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "User tidak ditemukan"
+            }), 404
+
+        # 🔥 CEK ROLE
+        if user.get("role") == "pendamping":
+            pasangan_id = user.get("partner_id")
+
+            if not pasangan_id:
+                return jsonify({
+                    "status": "error",
+                    "message": "Belum ada pasangan"
+                }), 400
+
+            user_id_to_query = pasangan_id
+        else:
+            user_id_to_query = user_id
+
+        # 🔥 QUERY DATA KEHAMILAN (SUDAH FIX)
+        data = list(
+            DataKehamilan.db["data_kehamilan"]
+            .find({"user_id": ObjectId(user_id_to_query)})
+            .sort("kehamilan_ke", -1)
+        )
+
+        result = []
+
+        for d in data:
+            result.append({
+                "id": str(d["_id"]),
+                "kehamilan_ke": d.get("kehamilan_ke", 0),
+                "hpht": d.get("hpht"),
+                "hpl": d.get("hpl"),
+                "status": d.get("status", "active"),
+                "start_date": d.get("start_date").isoformat() if d.get("start_date") else None,
+                "end_date": d.get("end_date").isoformat() if d.get("end_date") else None,
+            })
+
+        return jsonify({
+            "status": "success",
+            "data": result
+        }), 200
+
+    except Exception as e:
+        print("Error pregnancy history:", e)
+        return jsonify({
+            "status": "error",
+            "message": "Gagal mengambil data"
+        }), 500
+    
+@jwt_required()
+def dashboard_kehamilan_pasangan():
+    try:
+        user_id = get_jwt_identity()
+
+        # 🔥 Ambil data user pendamping
+        user = User.find_by_id(user_id)
+
+        if not user:
+            return jsonify({
+                "message": "User tidak ditemukan"
+            }), 404
 
         pasangan_id = user.get("partner_id")
 
@@ -205,18 +284,26 @@ def dashboard_kehamilan_pasangan():
                 "message": "Pasangan belum terhubung"
             }), 404
 
-        # ambil data kehamilan pasangan
-        data = DataKehamilan.find_by_user(pasangan_id)
+        # 🔥 Ambil kehamilan aktif pasangan (PASTIKAN ACTIVE)
+        data = DataKehamilan.db["data_kehamilan"].find_one({
+            "user_id": ObjectId(pasangan_id),
+            "status": "active"
+        })
 
         if not data:
             return jsonify({
                 "message": "Data kehamilan belum tersedia"
             }), 404
 
-        hpht = data["hpht"]
+        hpht = data.get("hpht")
 
+        if not hpht:
+            return jsonify({
+                "message": "HPHT tidak tersedia"
+            }), 400
+
+        # 🔥 HITUNG
         minggu, hari = hitung_usia_kehamilan(hpht)
-
         trimester = hitung_trimester(minggu)
 
         perkembangan = perkembangan_janin.get(
@@ -228,21 +315,29 @@ def dashboard_kehamilan_pasangan():
             }
         )
 
+        # 🔥 RESPONSE LENGKAP (INI YANG PENTING)
         return jsonify({
-
+            "kehamilan_id": str(data["_id"]),
             "usia_kehamilan_minggu": minggu,
             "usia_kehamilan_hari": hari,
             "trimester": trimester,
-            "hpl": data["hpl"],
+            "hpl": data.get("hpl"),
 
+            # 🔥 WAJIB ADA (BIAR MINGGU KE MUNCUL DI FRONTEND)
+            "hpht": hpht,
+
+            # 🔥 TAMBAHAN BIAR KONSISTEN DENGAN DASHBOARD UTAMA
+            "tinggi_badan": data.get("tinggi_badan"),
+            "berat_badan": data.get("berat_badan"),
+            "status": data.get("status", "active"),
+
+            # 🔥 DATA JANIN
             "ukuran_janin": perkembangan["ukuran"],
             "perkembangan_janin": perkembangan["perkembangan"],
             "tips_kesehatan": perkembangan["tips"]
-
-        })
+        }), 200
 
     except Exception as e:
-
         print("Error dashboard pasangan:", e)
 
         return jsonify({
@@ -276,7 +371,7 @@ def update_kehamilan():
 
         # ✅ UPDATE DATA KEHAMILAN
         result = DataKehamilan.db["data_kehamilan"].update_one(
-            {"user_id": ObjectId(user_id)},
+            {"user_id": ObjectId(user_id), "status": "active"},
             {"$set": update_data}
         )
 
@@ -303,3 +398,27 @@ def update_kehamilan():
     except Exception as e:
         print("Error update:", e)
         return jsonify({"message": "Terjadi kesalahan"}), 500
+    
+@jwt_required()
+def end_pregnancy():
+    try:
+        user_id = get_jwt_identity()
+
+        result = DataKehamilan.db["data_kehamilan"].update_one(
+            {"user_id": ObjectId(user_id), "status": "active"},
+            {
+                "$set": {
+                    "status": "finished",
+                    "end_date": datetime.utcnow()
+                }
+            }
+        )
+
+        if result.modified_count == 0:
+            return jsonify({"message": "Tidak ada kehamilan aktif"}), 400
+
+        return jsonify({"message": "Kehamilan diakhiri"}), 200
+
+    except Exception as e:
+        print(e)
+        return jsonify({"message": "Gagal mengakhiri"}), 500

@@ -15,7 +15,7 @@ import config
 
 # Firebase & Scheduler (aktifkan jika kamu pakai)
 from controller import controller_admin_user
-from controller.pregnancy_controller import dashboard_kehamilan, dashboard_kehamilan_pasangan, submit_validasi_kehamilan, update_kehamilan
+from controller.pregnancy_controller import dashboard_kehamilan, dashboard_kehamilan_pasangan, end_pregnancy, pregnancy_history, submit_validasi_kehamilan, update_kehamilan
 from firebase_init import init_firebase
 from models.craving_model import Craving
 from models.data_kehamilan_model import DataKehamilan
@@ -52,6 +52,7 @@ data_kehamilan_collection = db["data_kehamilan"]
 babyname_collection = db["favorite_babynames"]
 mood_ibu_hamil_collection = db["mood_ibu_hamil"]
 cravings_collection = db["cravings"]
+informasi_collection = db["informasi"]
 
 # ============================== IMPORT MODEL & CONTROLLER ==============================
 
@@ -101,6 +102,7 @@ set_informasi_db(db)
 set_notif_db(db)
 Craving.set_db(db)
 KalkulatorModel.set_db(db)
+
 
 # ============================== BLUEPRINT REGISTRASI ==============================
 
@@ -156,7 +158,7 @@ def ai_recommendation():
     data = request.json
 
     user_id = data.get("user_id")
-
+    kehamilan_id = data.get("kehamilan_id")
     energi = data.get("energy")
     mual = data.get("nausea")
     nyeri = data.get("pain")
@@ -164,7 +166,7 @@ def ai_recommendation():
     nafsu_makan = data.get("appetite")
 
     try:
-        # ================= AI RECOMMENDATION =================
+        # ================= AI =================
         result = generate_recommendation(
             energi,
             mual,
@@ -173,43 +175,43 @@ def ai_recommendation():
             nafsu_makan
         )
 
-        # ================= SIMPAN KE DATABASE =================
-        record = {
-            "user_id": ObjectId(user_id) if user_id else None,
-            "energi": energi,
-            "mual": mual,
-            "nyeri": nyeri,
-            "tidur": tidur,
-            "nafsu_makan": nafsu_makan,
-            "recommendation": result,
-            "created_at": datetime.utcnow()
-        }
+        # 🔥 DEBUG WAJIB
+        print("=== FULL RESULT ===")
+        print(result)
+        print("PANJANG:", len(result))
 
-        mood_ibu_hamil_collection.insert_one(record)
+        # ================= SIMPAN FULL KE DB =================
+        informasi_collection.insert_one({
+            "user_id": str(user_id),
+            "kehamilan_id": str(kehamilan_id) if kehamilan_id else None,
+            "tipe": "mood",
+            "pesan": result,  # ✅ FULL TANPA DIPOTONG
+            "tanggal": datetime.utcnow()
+        })
 
-        # ================= KIRIM NOTIF =================
-        try:
-            if user_id:
-                # 🔥 Ringkas hasil AI (biar tidak kepanjangan)
-                short_recommendation = (
-                    result[:200] + "..."
-                    if len(result) > 200 else result
-                )
+        # ================= NOTIF (VERSI PENDEK) =================
+        short_result = (
+            result[:200] + "..."
+            if len(result) > 200 else result
+        )
 
-                pesan = (
-                    f"Energi {energi}/10 | Mual {mual}/10 | Nyeri {nyeri}/10\n\n"
-                    f"Analisis:\n{short_recommendation}"
-                )
+        pesan_notif = (
+            f"Energi {energi}/10 | Mual {mual}/10 | Nyeri {nyeri}/10\n\n"
+            f"{short_result}"
+        )
 
-                kirim_notif_mood(user_id, pesan)
+        print("=== NOTIF ===")
+        print(pesan_notif)
+        print("PANJANG NOTIF:", len(pesan_notif))
 
-        except Exception as notif_error:
-            print("Notif gagal:", notif_error)
+        # kirim notif
+        if user_id:
+            kirim_notif_mood(user_id, pesan_notif, kehamilan_id)
 
-        # ================= RESPONSE =================
+        # ================= RESPONSE (FULL) =================
         return jsonify({
             "status": "success",
-            "recommendation": result
+            "recommendation": result  # ✅ FULL
         })
 
     except Exception as e:
@@ -227,6 +229,11 @@ def validate():
 def dashboard():
     return dashboard_kehamilan()
 
+@app.route('/pregnancy/history', methods=['GET'])
+@jwt_required()
+def riwayat_kehamilan():
+    return pregnancy_history()
+
 @app.route('/pregnancy/dashboard/pasangan', methods=['GET'])
 @jwt_required()
 def dashboard_pasangan():
@@ -236,6 +243,11 @@ def dashboard_pasangan():
 @jwt_required()
 def updatedatahamil():
     return update_kehamilan()
+
+@app.route('/pregnancy/end', methods=['POST'])
+@jwt_required()
+def end_pregnancy_route():
+    return end_pregnancy()
 
 @app.route("/ai/babyname", methods=["POST"])
 def ai_babyname():
@@ -267,14 +279,14 @@ def ai_babyname():
 def save_favorite_babyname():
 
     user_id = get_jwt_identity()
-    data = request.json
+    data = request.json  # ✅ HARUS DI ATAS
 
+    kehamilan_id = data.get("kehamilan_id")  # ✅ baru aman
     name = data.get("name", "").strip()
 
     # 🔥 ambil user
     user = users_collection.find_one({"_id": ObjectId(user_id)})
 
-    # ✅ FIX: pastikan owner_id selalu ObjectId
     partner_id = user.get("partner_id") if user else None
 
     if partner_id:
@@ -285,7 +297,8 @@ def save_favorite_babyname():
     # cek existing
     existing = babyname_collection.find_one({
         "user_id": owner_id,
-        "name": name
+        "name": name,
+        "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id else None
     })
 
     if existing:
@@ -295,8 +308,9 @@ def save_favorite_babyname():
         }), 400
 
     babyname_collection.insert_one({
-        "user_id": owner_id,              # 🔥 FIX CONSISTENT OBJECTID
-        "created_by": ObjectId(user_id),  # siapa yang menyimpan
+        "user_id": owner_id,
+        "created_by": ObjectId(user_id),
+        "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id else None,
         "name": name,
         "meaning": data.get("meaning"),
         "category": data.get("category"),
@@ -312,29 +326,34 @@ def save_favorite_babyname():
 @app.route("/babyname/favorite", methods=["GET"])
 @jwt_required()
 def get_babyname_favorites():
-    current_user_id = get_jwt_identity()  # user_id dari token
+    current_user_id = get_jwt_identity()
+    kehamilan_id = request.args.get("kehamilan_id")  # 🔥 ambil dari query
 
-    # Ambil pasangan jika ada (misal disimpan di users_collection)
     user_doc = users_collection.find_one({"_id": ObjectId(current_user_id)})
     pasangan_id = user_doc.get("partner_id") if user_doc else None
 
     query_filter = {
         "$or": [
-            {"user_id": ObjectId(current_user_id)},          # Favorit milik sendiri
-            {"created_by": ObjectId(current_user_id)},       # Favorit yang dibuat untuk user
+            {"user_id": ObjectId(current_user_id)},
+            {"created_by": ObjectId(current_user_id)},
         ]
     }
 
-    # Jika ada pasangan, ambil juga favorit pasangan
+    # 🔥 FILTER PER KEHAMILAN
+    if kehamilan_id:
+        query_filter["kehamilan_id"] = ObjectId(kehamilan_id)
+
+    # pasangan tetap jalan
     if pasangan_id:
         query_filter["$or"].extend([
             {"user_id": ObjectId(pasangan_id)},
             {"created_by": ObjectId(pasangan_id)},
         ])
 
-    favorites = list(babyname_collection.find(query_filter).sort("created_at", -1))
+    favorites = list(
+        babyname_collection.find(query_filter).sort("created_at", -1)
+    )
 
-    # Format response
     result = []
     for fav in favorites:
         result.append({
@@ -413,10 +432,11 @@ def api_kirim_notif_relaksasi():
         data = request.get_json()
 
         user_id = data.get("user_id")
+        kehamilan_id = data.get("kehamilan_id")
         label = data.get("label")
         durasi = data.get("durasi")
 
-        kirim_notif_relaksasi(user_id, label, durasi)
+        kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id)
 
         return jsonify({
             "status": "success",
