@@ -39,7 +39,7 @@ app.json = CustomJSONProvider(app)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # JWT Configuration
-app.config['JWT_SECRET_KEY'] = '12345'
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
 jwt = JWTManager(app)
 
 # ============================== DATABASE SETUP ==============================

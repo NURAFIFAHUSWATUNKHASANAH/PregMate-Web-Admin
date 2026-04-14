@@ -2,9 +2,8 @@ import datetime
 import random
 import smtplib
 from email.mime.text import MIMEText
-from urllib import request
+from flask import request, jsonify
 from bson import ObjectId
-from flask import jsonify
 from werkzeug.security import generate_password_hash
 from models.datauser_model import User
 
