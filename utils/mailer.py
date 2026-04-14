@@ -37,8 +37,10 @@ def send_email(to_email, subject, message):
 
 def request_otp():
     data = request.get_json()
-    email = data.get('email')
+    if not data:
+        return jsonify({"error": "Request harus JSON"}), 400
 
+    email = data.get('email')
     if not email:
         return jsonify({"error": "Email harus diisi"}), 400
 
@@ -46,24 +48,27 @@ def request_otp():
     if not user:
         return jsonify({"error": "Email tidak ditemukan"}), 404
 
+    user_id = user["_id"] if isinstance(user["_id"], ObjectId) else ObjectId(user["_id"])
+
     otp = f"{random.randint(100000, 999999)}"
 
     otp_data = {
         "otp": otp,
-        "otp_expired_at": datetime.utcnow() + datetime.timedelta(minutes=OTP_EXPIRE_MINUTES)
+        "otp_expired_at": datetime.datetime.utcnow() + datetime.timedelta(minutes=OTP_EXPIRE_MINUTES)
     }
-    User.db.users.update_one(
-        {"_id": ObjectId(user["_id"])},
-        {"$set": otp_data}
-    )
+
+    User.db.users.update_one({"_id": user_id}, {"$set": otp_data})
 
     subject = "Kode OTP untuk Reset Password"
-    message = f"Kode OTP Anda adalah: {otp}. Kode ini berlaku selama {OTP_EXPIRE_MINUTES} menit."
-    if send_email(email, subject, message):
+    message = f"Kode OTP Anda adalah: {otp}. Berlaku {OTP_EXPIRE_MINUTES} menit."
+
+    success = send_email(email, subject, message)
+
+    if success:
         return jsonify({"message": "OTP berhasil dikirim ke email"}), 200
     else:
         return jsonify({"error": "Gagal mengirim email"}), 500
-
+    
 def reset_password():
     data = request.get_json()
     email = data.get('email')
