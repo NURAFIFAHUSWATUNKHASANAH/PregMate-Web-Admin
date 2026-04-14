@@ -7,7 +7,7 @@ from flask_jwt_extended import create_access_token
 from dateutil import parser
 
 from models.datauser_model import User
-from utils.mailer import send_email
+from utils.mailer import OTP_EXPIRE_MINUTES, send_email
 
 
 def set_db(database):
@@ -29,64 +29,34 @@ def generate_random_password(length=8):
 # ================================
 def register_user():
     try:
-
         data = request.get_json()
-
-        # ========================
-        # DATA IBU
-        # ========================
 
         nama = data.get("nama")
         email = data.get("email")
         password = data.get("password")
 
-        # ========================
-        # DATA SUAMI
-        # ========================
-
         nama_suami = data.get("nama_suami")
         email_suami = data.get("email_suami")
 
         if not nama or not email or not password:
-            return jsonify({
-                "message": "Nama, email, dan password harus diisi"
-            }), 400
+            return jsonify({"message": "Nama, email, dan password harus diisi"}), 400
 
         if len(password) < 6:
-            return jsonify({
-                "message": "Password minimal 6 karakter"
-            }), 400
+            return jsonify({"message": "Password minimal 6 karakter"}), 400
 
         if User.find_by_email(email):
-            return jsonify({
-                "message": "Email sudah digunakan"
-            }), 400
-
-        # ========================
-        # HASH PASSWORD IBU
-        # ========================
+            return jsonify({"message": "Email sudah digunakan"}), 400
 
         hashed_password = generate_password_hash(password)
 
-        # ========================
-        # OTP IBU
-        # ========================
-
         otp = str(random.randint(100000, 999999))
 
-        # ========================
-        # CREATE AKUN IBU
-        # ========================
-
         ibu_data = {
-
             "nama": nama,
             "email": email,
             "password": hashed_password,
             "role": "ibu",
-
             "partner_id": None,
-
             "otp": otp,
             "otp_verified": False,
             "otp_created_at": datetime.datetime.utcnow().isoformat(),
@@ -101,70 +71,46 @@ def register_user():
         suami_id = None
 
         # ========================
-        # CREATE AKUN SUAMI OTOMATIS
+        # AKUN SUAMI
         # ========================
-
         if nama_suami and email_suami:
 
             if User.find_by_email(email_suami):
-                return jsonify({
-                    "message": "Email suami sudah digunakan"
-                }), 400
+                return jsonify({"message": "Email suami sudah digunakan"}), 400
 
-            # generate password suami
             password_suami_plain = generate_random_password()
             password_suami_hash = generate_password_hash(password_suami_plain)
 
             suami_data = {
-
                 "nama": nama_suami,
                 "email": email_suami,
                 "password": password_suami_hash,
                 "role": "pendamping",
-
                 "partner_id": str(ibu_id),
-
                 "is_active": True,
-
                 "otp_verified": True
             }
 
             suami_id = User.insert_user(suami_data)
 
-            # update partner ibu
             User.update_fields(str(ibu_id), {
                 "partner_id": str(suami_id)
             })
 
-            # ========================
-            # EMAIL KE SUAMI
-            # ========================
-
-            subject = "Akun Pendamping PregMate"
-
-            body = f"""
+            subject_suami = "Akun Pendamping PregMate"
+            body_suami = f"""
 Halo {nama_suami},
-
-Anda telah didaftarkan sebagai pendamping oleh {nama}.
-
-Silakan login menggunakan akun berikut:
 
 Email : {email_suami}
 Password : {password_suami_plain}
-
-Setelah login, silakan ubah password Anda di aplikasi.
-
-Terima kasih.
 """
 
-            send_email(email_suami, subject, body)
+            send_email(email_suami, subject_suami, body_suami)
 
         # ========================
-        # SEND OTP KE IBU
+        # 🔥 EMAIL OTP IBU (FIX DI SINI)
         # ========================
-
-        subject = "Kode Verifikasi OTP PhysioCare"
-
+        subject = "Kode Verifikasi OTP"
         body = f"""
 Halo {nama},
 
@@ -172,29 +118,30 @@ Kode OTP Anda adalah:
 
 {otp}
 
-Kode ini berlaku selama 10 menit.
-
-Jangan bagikan kode ini kepada siapapun.
+Berlaku selama {OTP_EXPIRE_MINUTES} menit.
 """
 
-        send_email(email, subject, body)
+        success = send_email(email, subject, body)
+
+        # 🔥 FIX: HANDLE GAGAL EMAIL
+        if not success:
+            print("WARNING: EMAIL OTP GAGAL DIKIRIM")
+
+            return jsonify({
+                "message": "Registrasi berhasil, tapi email OTP gagal dikirim",
+                "otp_debug": otp,  # 🔥 untuk testing
+                "user_id": str(ibu_id)
+            }), 201
 
         return jsonify({
-
-            "message": "Registrasi berhasil, silakan verifikasi OTP",
+            "message": "Registrasi berhasil, silakan cek email untuk OTP",
             "user_id": str(ibu_id),
             "partner_created": suami_id is not None
-
         }), 201
 
     except Exception as e:
-
-        print(e)
-
-        return jsonify({
-            "message": f"Gagal registrasi: {e}"
-        }), 500
-
+        print("ERROR register_user:", str(e))
+        return jsonify({"message": f"Gagal registrasi: {e}"}), 500
 
 # ================================
 # VERIFY OTP
