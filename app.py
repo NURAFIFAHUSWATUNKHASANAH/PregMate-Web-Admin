@@ -44,7 +44,8 @@ jwt = JWTManager(app)
 
 # ============================== DATABASE SETUP ==============================
 
-client = MongoClient("mongodb://localhost:27017/")
+client = MongoClient("mongodb+srv://afifahhffi_db_user:fpGWujNhvknLCgfA@cluster0pregmate.itmfhvy.mongodb.net/capstone?retryWrites=true&w=majority")
+
 db = client["capstone"]
 users_collection = db["users"]
 schedule_collection = db["schedules"]
