@@ -70,37 +70,57 @@ def request_otp():
         return jsonify({"error": "Gagal mengirim email"}), 500
     
 def reset_password():
-    data = request.get_json()
-    email = data.get('email')
-    otp = data.get('otp')
-    new_password = data.get('new_password')
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Request harus JSON"}), 400
 
-    if not email or not otp or not new_password:
-        return jsonify({"error": "Email, OTP, dan password baru harus diisi"}), 400
+        email = data.get('email')
+        otp = data.get('otp')
+        new_password = data.get('new_password')
 
-    user = User.find_by_email(email)
-    if not user:
-        return jsonify({"error": "Email tidak ditemukan"}), 404
+        if not email or not otp or not new_password:
+            return jsonify({"error": "Email, OTP, dan password baru harus diisi"}), 400
 
-    stored_otp = user.get('otp')
-    otp_expired_at = user.get('otp_expired_at')
+        user = User.find_by_email(email)
+        if not user:
+            return jsonify({"error": "Email tidak ditemukan"}), 404
 
-    if stored_otp != otp:
-        return jsonify({"error": "OTP salah"}), 400
+        user_id = user["_id"] if isinstance(user["_id"], ObjectId) else ObjectId(user["_id"])
 
-    if not otp_expired_at or datetime.utcnow() > otp_expired_at:
-        return jsonify({"error": "OTP sudah kadaluwarsa"}), 400
+        stored_otp = user.get('otp')
+        otp_expired_at = user.get('otp_expired_at')
 
-    # Gantilah hash password menggunakan werkzeug (biar konsisten dengan login_user)
-    hashed_password = generate_password_hash(new_password)
+        # ❌ OTP salah
+        if stored_otp != otp:
+            return jsonify({"error": "OTP salah"}), 400
 
-    User.db.users.update_one(
-        {"_id": ObjectId(user["_id"])},
-        {"$set": {
-            "password": hashed_password,
-            "otp": None,
-            "otp_expired_at": None
-        }}
-    )
+        # ❌ OTP tidak ada
+        if not otp_expired_at:
+            return jsonify({"error": "OTP tidak valid"}), 400
 
-    return jsonify({"message": "Password berhasil direset"}), 200
+        # ❗ HANDLE kalau dari DB jadi string
+        if isinstance(otp_expired_at, str):
+            otp_expired_at = datetime.datetime.fromisoformat(otp_expired_at)
+
+        # ❌ FIX datetime.utcnow()
+        if datetime.datetime.utcnow() > otp_expired_at:
+            return jsonify({"error": "OTP sudah kadaluwarsa"}), 400
+
+        # HASH PASSWORD
+        hashed_password = generate_password_hash(new_password)
+
+        User.db.users.update_one(
+            {"_id": user_id},
+            {"$set": {
+                "password": hashed_password,
+                "otp": None,
+                "otp_expired_at": None
+            }}
+        )
+
+        return jsonify({"message": "Password berhasil direset"}), 200
+
+    except Exception as e:
+        print("ERROR reset_password:", str(e))
+        return jsonify({"error": str(e)}), 500
