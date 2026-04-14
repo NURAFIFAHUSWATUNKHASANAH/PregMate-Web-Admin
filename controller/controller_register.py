@@ -30,35 +30,23 @@ def generate_random_password(length=8):
 def register_user():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({"message": "Request harus JSON"}), 400
-
         nama = data.get("nama")
         email = data.get("email")
         password = data.get("password")
-
         nama_suami = data.get("nama_suami")
         email_suami = data.get("email_suami")
 
+        # Validasi dasar
         if not nama or not email or not password:
-            return jsonify({
-                "message": "Nama, email, dan password harus diisi"
-            }), 400
-
-        if len(password) < 6:
-            return jsonify({
-                "message": "Password minimal 6 karakter"
-            }), 400
+            return jsonify({"message": "Nama, email, dan password harus diisi"}), 400
 
         if User.find_by_email(email):
-            return jsonify({
-                "message": "Email sudah digunakan"
-            }), 400
+            return jsonify({"message": "Email sudah digunakan"}), 400
 
         hashed_password = generate_password_hash(password)
-
         otp = str(random.randint(100000, 999999))
 
+        # Simpan Akun Ibu
         ibu_data = {
             "nama": nama,
             "email": email,
@@ -70,88 +58,47 @@ def register_user():
             "otp_created_at": datetime.datetime.utcnow().isoformat(),
             "is_validated": False
         }
-
         ibu_id = User.insert_user(ibu_data)
 
-        if not ibu_id:
-            return jsonify({"message": "Gagal membuat akun ibu"}), 500
-
+        # Simpan Akun Suami (Jika ada)
         suami_id = None
-
-        # ========================
-        # SUAMI
-        # ========================
         if nama_suami and email_suami:
-            if User.find_by_email(email_suami):
-                return jsonify({
-                    "message": "Email suami sudah digunakan"
-                }), 400
+            if not User.find_by_email(email_suami):
+                pass_suami_plain = generate_random_password()
+                suami_data = {
+                    "nama": nama_suami,
+                    "email": email_suami,
+                    "password": generate_password_hash(pass_suami_plain),
+                    "role": "pendamping",
+                    "partner_id": str(ibu_id),
+                    "is_active": True,
+                    "otp_verified": True
+                }
+                suami_id = User.insert_user(suami_data)
+                User.update_fields(str(ibu_id), {"partner_id": str(suami_id)})
+                
+                # Email ke Suami (Jangan biarkan error email menghentikan proses)
+                subj_suami = "Akun Pendamping PregMate"
+                body_suami = f"Halo {nama_suami}, login dengan Email: {email_suami} & Password: {pass_suami_plain}"
+                send_email(email_suami, subj_suami, body_suami)
 
-            password_suami_plain = generate_random_password()
-            password_suami_hash = generate_password_hash(password_suami_plain)
+        # Kirim OTP ke Ibu
+        subject_otp = "Kode Verifikasi OTP PregMate"
+        body_otp = f"Halo {nama}, Kode OTP Anda adalah: {otp}"
+        
+        email_sent = send_email(email, subject_otp, body_otp)
 
-            suami_data = {
-                "nama": nama_suami,
-                "email": email_suami,
-                "password": password_suami_hash,
-                "role": "pendamping",
-                "partner_id": str(ibu_id),
-                "is_active": True,
-                "otp_verified": True
-            }
-
-            suami_id = User.insert_user(suami_data)
-
-            User.update_fields(str(ibu_id), {
-                "partner_id": str(suami_id)
-            })
-
-            subject = "Akun Pendamping PregMate"
-            body = f"""
-Halo {nama_suami},
-
-Email : {email_suami}
-Password : {password_suami_plain}
-"""
-
-            send_email(email_suami, subject, body)
-
-        # ========================
-        # OTP EMAIL IBU (🔥 FIX UTAMA)
-        # ========================
-        subject = "Kode Verifikasi OTP"
-        body = f"""
-Halo {nama},
-
-Kode OTP Anda adalah:
-{otp}
-
-Berlaku 10 menit.
-"""
-
-        email_success = send_email(email, subject, body)
-
-        # 🔥 HANDLE GAGAL EMAIL
-        if not email_success:
-            print("WARNING: Email OTP gagal dikirim")
-
-            return jsonify({
-                "message": "Registrasi berhasil, tapi email OTP gagal dikirim",
-                "user_id": str(ibu_id),
-                "otp_debug": otp  # 🔥 sementara biar bisa lanjut testing
-            }), 201
-
+        # RESEP RAHASIA: Tetap return 201 meskipun email gagal
+        # Jika email gagal, kamu bisa cek OTP langsung di Database MongoDB Atlas untuk testing
         return jsonify({
-            "message": "Registrasi berhasil, silakan verifikasi OTP",
+            "message": "Registrasi berhasil, silakan cek email untuk OTP" if email_sent else "Registrasi berhasil, tetapi gagal mengirim email OTP.",
             "user_id": str(ibu_id),
-            "partner_created": suami_id is not None
+            "email_status": "sent" if email_sent else "failed"
         }), 201
 
     except Exception as e:
-        print("ERROR REGISTER:", str(e))
-        return jsonify({
-            "message": f"Gagal registrasi: {e}"
-        }), 500
+        print(f"CRITICAL REGISTER ERROR: {e}")
+        return jsonify({"message": f"Terjadi kesalahan server: {e}"}), 500
 
 # ================================
 # VERIFY OTP

@@ -14,35 +14,32 @@ OTP_EXPIRE_MINUTES = 10
 def send_email(to_email, subject, message):
     try:
         smtp_server = "smtp.gmail.com"
-        smtp_port = 587
+        # Gunakan port 465 untuk SSL, biasanya lebih tembus di hosting cloud
+        smtp_port = 465 
 
         smtp_user = os.getenv("SMTP_USER")
         smtp_password = os.getenv("SMTP_PASSWORD")
 
-        # 🔥 DEBUG WAJIB
-        print("SMTP_USER:", smtp_user)
-        print("SMTP_PASS:", smtp_password)
-
         if not smtp_user or not smtp_password:
-            raise Exception("SMTP env tidak terbaca")
+            print("ERROR: SMTP_USER atau SMTP_PASSWORD belum diatur di Variables Railway")
+            return False
 
         msg = MIMEText(message)
-        msg['Reply-To'] = smtp_user
         msg['Subject'] = subject
         msg['From'] = smtp_user
         msg['To'] = to_email
 
-        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
-        server.starttls()
+        # Menggunakan SMTP_SSL untuk port 465
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=15)
         server.login(smtp_user, smtp_password)
         server.sendmail(smtp_user, [to_email], msg.as_string())
         server.quit()
 
-        print("EMAIL BERHASIL DIKIRIM")
+        print(f"EMAIL BERHASIL DIKIRIM KE: {to_email}")
         return True
 
     except Exception as e:
-        print("EMAIL ERROR:", str(e))
+        print(f"EMAIL ERROR [{to_email}]: {str(e)}")
         return False
 
 def request_otp():
