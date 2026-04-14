@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from flask import request, jsonify
 from bson import ObjectId
 from flask import jsonify
+import requests
 from werkzeug.security import generate_password_hash
 from models.datauser_model import User
 
@@ -13,33 +14,32 @@ OTP_EXPIRE_MINUTES = 10
 
 def send_email(to_email, subject, message):
     try:
-        smtp_server = "smtp.gmail.com"
-        # Gunakan port 465 untuk SSL, biasanya lebih tembus di hosting cloud
-        smtp_port = 465 
+        api_key = os.getenv("RESEND_API_KEY")
 
-        smtp_user = os.getenv("SMTP_USER")
-        smtp_password = os.getenv("SMTP_PASSWORD")
+        url = "https://api.resend.com/emails"
 
-        if not smtp_user or not smtp_password:
-            print("ERROR: SMTP_USER atau SMTP_PASSWORD belum diatur di Variables Railway")
-            return False
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
 
-        msg = MIMEText(message)
-        msg['Subject'] = subject
-        msg['From'] = smtp_user
-        msg['To'] = to_email
+        data = {
+            "from": "PregMate <onboarding@resend.dev>",
+            "to": [to_email],
+            "subject": subject,
+            "html": f"<p>{message}</p>",
+            "reply_to": "nurafifahuswatunkh@gmail.com"
+        }
 
-        # Menggunakan SMTP_SSL untuk port 465
-        server = smtplib.SMTP_SSL(smtp_server, smtp_port, timeout=15)
-        server.login(smtp_user, smtp_password)
-        server.sendmail(smtp_user, [to_email], msg.as_string())
-        server.quit()
+        response = requests.post(url, json=data, headers=headers)
 
-        print(f"EMAIL BERHASIL DIKIRIM KE: {to_email}")
-        return True
+        print("RESEND STATUS:", response.status_code)
+        print("RESEND RESPONSE:", response.text)
+
+        return response.status_code in [200, 201, 202]
 
     except Exception as e:
-        print(f"EMAIL ERROR [{to_email}]: {str(e)}")
+        print("EMAIL ERROR:", str(e))
         return False
 
 def request_otp():
