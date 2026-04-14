@@ -4,6 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 from flask import request, jsonify
 from bson import ObjectId
+from flask import jsonify
 from werkzeug.security import generate_password_hash
 from models.datauser_model import User
 
@@ -48,7 +49,7 @@ def request_otp():
 
     otp_data = {
         "otp": otp,
-        "otp_expired_at": datetime.datetime.utcnow() + datetime.timedelta(minutes=OTP_EXPIRE_MINUTES)
+        "otp_expired_at": datetime.utcnow() + datetime.timedelta(minutes=OTP_EXPIRE_MINUTES)
     }
     User.db.users.update_one(
         {"_id": ObjectId(user["_id"])},
@@ -81,7 +82,7 @@ def reset_password():
     if stored_otp != otp:
         return jsonify({"error": "OTP salah"}), 400
 
-    if not otp_expired_at or datetime.datetime.utcnow() > otp_expired_at:
+    if not otp_expired_at or datetime.utcnow() > otp_expired_at:
         return jsonify({"error": "OTP sudah kadaluwarsa"}), 400
 
     # Gantilah hash password menggunakan werkzeug (biar konsisten dengan login_user)
@@ -96,4 +97,4 @@ def reset_password():
         }}
     )
 
-    return jsonify({"message": "Password berhasil direset"}), 200
+    return jsonify({"message": "Password berhasil direset"}), 200,
