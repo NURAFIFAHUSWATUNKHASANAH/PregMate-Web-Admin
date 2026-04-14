@@ -15,8 +15,9 @@ def send_email(to_email, subject, message):
     try:
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
-        smtp_user = "nurafifahuswatunkh@gmail.com"        # Ganti sesuai email kamu
-        smtp_password = "epkw hpxz igfv qyrx" 
+
+        smtp_user = os.getenv("SMTP_USER")
+        smtp_password = os.getenv("SMTP_PASSWORD")
 
         # 🔥 DEBUG WAJIB
         print("SMTP_USER:", smtp_user)
