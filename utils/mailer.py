@@ -97,4 +97,4 @@ def reset_password():
         }}
     )
 
-    return jsonify({"message": "Password berhasil direset"}), 200,
+    return jsonify({"message": "Password berhasil direset"}), 200
