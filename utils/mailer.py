@@ -1,4 +1,5 @@
 import datetime
+import os
 import random
 import smtplib
 from email.mime.text import MIMEText
@@ -13,8 +14,8 @@ OTP_EXPIRE_MINUTES = 10
 def send_email(to_email, subject, message):
     smtp_server = "smtp.gmail.com"
     smtp_port = 587
-    smtp_user = "nurafifahuswatunkh@gmail.com"        # Ganti sesuai email kamu
-    smtp_password = "epkw hpxz igfv qyrx"     # Ganti sesuai password/app password
+    smtp_user = os.getenv("SMTP_USER")
+    smtp_password = os.getenv("SMTP_PASSWORD")
 
     msg = MIMEText(message)
     msg['Reply-To'] = smtp_user
