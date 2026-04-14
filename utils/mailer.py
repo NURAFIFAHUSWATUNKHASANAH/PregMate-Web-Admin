@@ -12,27 +12,37 @@ from models.datauser_model import User
 OTP_EXPIRE_MINUTES = 10
 
 def send_email(to_email, subject, message):
-    smtp_server = "smtp.gmail.com"
-    smtp_port = 587
-    smtp_user = os.getenv("SMTP_USER")
-    smtp_password = os.getenv("SMTP_PASSWORD")
-
-    msg = MIMEText(message)
-    msg['Reply-To'] = smtp_user
-    msg['Subject'] = subject
-    msg['From'] = smtp_user
-    msg['To'] = to_email
-
     try:
-        server = smtplib.SMTP(smtp_server, smtp_port)
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+
+        smtp_user = os.getenv("SMTP_USER")
+        smtp_password = os.getenv("SMTP_PASSWORD")
+
+        # 🔥 DEBUG WAJIB
+        print("SMTP_USER:", smtp_user)
+        print("SMTP_PASS:", smtp_password)
+
+        if not smtp_user or not smtp_password:
+            raise Exception("SMTP env tidak terbaca")
+
+        msg = MIMEText(message)
+        msg['Reply-To'] = smtp_user
+        msg['Subject'] = subject
+        msg['From'] = smtp_user
+        msg['To'] = to_email
+
+        server = smtplib.SMTP(smtp_server, smtp_port, timeout=10)
         server.starttls()
         server.login(smtp_user, smtp_password)
         server.sendmail(smtp_user, [to_email], msg.as_string())
         server.quit()
-        print("Berhasil mengirim email.")
+
+        print("EMAIL BERHASIL DIKIRIM")
         return True
+
     except Exception as e:
-        print("Failed to send email:", e)
+        print("EMAIL ERROR:", str(e))
         return False
 
 def request_otp():
