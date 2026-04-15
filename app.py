@@ -16,13 +16,13 @@ import config
 # Firebase & Scheduler (aktifkan jika kamu pakai)
 from controller import controller_admin_user
 from controller.pregnancy_controller import dashboard_kehamilan, dashboard_kehamilan_pasangan, end_pregnancy, pregnancy_history, submit_validasi_kehamilan, update_kehamilan
-from firebase_init import init_firebase
 from models.craving_model import Craving
 from models.data_kehamilan_model import DataKehamilan
 from models.tas_bersalin_model import TasBersalinModel
 from scheduler import start_scheduler
 from route_halaman.route_meditation import meditation_bp, set_db as set_meditation_db
-from ai_babyname import fallback_babyname, generate_baby_name
+from ai_babyname import generate_baby_name
+from firebase_init import init_firebase
 # ============================== KONVERSI ObjectId AGAR BISA DI JSONIFY ==============================
 
 class CustomJSONProvider(DefaultJSONProvider):
@@ -34,6 +34,7 @@ class CustomJSONProvider(DefaultJSONProvider):
 # ============================== FLASK APP SETUP ==============================
 
 app = Flask(__name__)
+init_firebase()        # aktifkan jika kamu gunakan Firebase Admin SDK
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'images')
 app.secret_key = secrets.token_hex(16)
 app.json = CustomJSONProvider(app)
@@ -256,27 +257,28 @@ def end_pregnancy_route():
 
 @app.route("/ai/babyname", methods=["POST"])
 def ai_babyname():
-    data = request.json or {}
 
-    keyword = data.get("keyword", "")
-    category = data.get("category", "Islami")
-    gender = data.get("gender", "Laki-laki")
+    data = request.json
+
+    keyword = data.get("keyword")
+    category = data.get("category")
+    gender = data.get("gender")
 
     try:
+
         result = generate_baby_name(keyword, category, gender)
 
         return jsonify({
             "status": "success",
             "names": result
-        }), 200
+        })
 
     except Exception as e:
-        print("ROUTE ERROR:", e)
 
         return jsonify({
-            "status": "success",
-            "names": fallback_babyname()  # 🔥 JANGAN 500 LAGI
-        }), 200
+            "status": "error",
+            "message": str(e)
+        })
     
 @app.route("/babyname/favorite", methods=["POST"])
 @jwt_required()
@@ -455,6 +457,6 @@ def api_kirim_notif_relaksasi():
 # ============================== RUN APLIKASI ==============================
 
 if __name__ == '__main__':
-    init_firebase()        # aktifkan jika kamu gunakan Firebase Admin SDK
+    
     start_scheduler(db)    # aktifkan jika kamu gunakan fitur penjadwalan
     app.run(host='0.0.0.0', port=5000, debug=True)
