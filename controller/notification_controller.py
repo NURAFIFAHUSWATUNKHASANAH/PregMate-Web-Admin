@@ -122,18 +122,18 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
         print("Tidak ada pendamping")
         return
 
+    pesan = f"Ibu hamil menyelesaikan latihan {label} selama {durasi} menit 🤰"
+
     success = 0
 
     for p in pendamping_list:
         token = p.get("fcmToken")
 
         if not token:
-            print("Token kosong untuk:", p.get("nama"))
+            print("Token kosong:", p.get("nama"))
             continue
 
         try:
-            pesan = f"Ibu hamil menyelesaikan latihan {label} selama {durasi} menit 🤰"
-
             message = messaging.Message(
                 notification=messaging.Notification(
                     title="Latihan Relaksasi Selesai",
@@ -143,14 +143,14 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
             )
 
             response = messaging.send(message)
-            print("SUCCESS SEND:", response)
+            print("SUCCESS:", response)
             success += 1
 
         except Exception as e:
-            print("❌ TOKEN INVALID / ERROR:", token)
-            print("DETAIL ERROR:", e)
+            print("❌ TOKEN INVALID / EXPIRED:", token)
+            print("ERROR:", e)
 
-            # 🔥 HAPUS TOKEN YANG SUDAH ERROR (IMPORTANT FIX)
+            # 🔥 AUTO HAPUS TOKEN YANG SUDAH MATI
             users_collection.update_one(
                 {"_id": p["_id"]},
                 {"$unset": {"fcmToken": ""}}
@@ -158,16 +158,17 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
 
     print("Notifikasi terkirim:", success)
 
-    # SIMPAN KE DB
-    informasi_collection.insert_one({
-        "user_id": user_id,
-        "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id else None,
-        "tipe": "relaksasi",
-        "label": label,
-        "durasi": durasi,
-        "pesan": pesan,
-        "tanggal": datetime.utcnow()
-    })
+    # SIMPAN KE DB (AMAN)
+    if informasi_collection is not None:
+        informasi_collection.insert_one({
+            "user_id": user_id,
+            "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id else None,
+            "tipe": "relaksasi",
+            "label": label,
+            "durasi": durasi,
+            "pesan": pesan,
+            "tanggal": datetime.utcnow()
+        })
 
     print("MASUK FUNGSI RELAKSASI")
 
