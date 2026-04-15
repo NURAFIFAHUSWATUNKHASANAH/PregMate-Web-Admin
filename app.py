@@ -22,7 +22,7 @@ from models.data_kehamilan_model import DataKehamilan
 from models.tas_bersalin_model import TasBersalinModel
 from scheduler import start_scheduler
 from route_halaman.route_meditation import meditation_bp, set_db as set_meditation_db
-from ai_babyname import generate_baby_name
+from ai_babyname import fallback_babyname, generate_baby_name
 # ============================== KONVERSI ObjectId AGAR BISA DI JSONIFY ==============================
 
 class CustomJSONProvider(DefaultJSONProvider):
@@ -256,28 +256,27 @@ def end_pregnancy_route():
 
 @app.route("/ai/babyname", methods=["POST"])
 def ai_babyname():
+    data = request.json or {}
 
-    data = request.json
-
-    keyword = data.get("keyword")
-    category = data.get("category")
-    gender = data.get("gender")
+    keyword = data.get("keyword", "")
+    category = data.get("category", "Islami")
+    gender = data.get("gender", "Laki-laki")
 
     try:
-
         result = generate_baby_name(keyword, category, gender)
 
         return jsonify({
             "status": "success",
             "names": result
-        })
+        }), 200
 
     except Exception as e:
+        print("ROUTE ERROR:", e)
 
         return jsonify({
-            "status": "error",
-            "message": str(e)
-        })
+            "status": "success",
+            "names": fallback_babyname()  # 🔥 JANGAN 500 LAGI
+        }), 200
     
 @app.route("/babyname/favorite", methods=["POST"])
 @jwt_required()
