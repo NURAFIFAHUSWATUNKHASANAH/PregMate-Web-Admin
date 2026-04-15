@@ -32,6 +32,13 @@ class User:
         if User.db is None:
             raise Exception("Database connection is not initialized.")
         return User.db["users"].find_one({"_id": ObjectId(user_id)})
+    
+    @staticmethod
+    def find_by_phone(phone):
+        """Mencari user berdasarkan nomor WA"""
+        if User.db is None:
+            raise Exception("Database connection is not initialized.")
+        return User.db["users"].find_one({"phone": phone})
 
     @staticmethod
     def find_all():
@@ -49,25 +56,25 @@ class User:
         return result.inserted_id
 
     @staticmethod
-    def update(user_id, nama, email, password, foto=None):
-        """Memperbarui data pengguna."""
-        if User.db is None:
-            raise Exception("Database connection is not initialized.")
-        
+    def update(user_id, nama, phone=None, password=None, foto=None):
         update_data = {
             "nama": nama,
-            "email": email,
             "password": password,
+            "phone": phone
         }
 
         if foto is not None:
             update_data["foto"] = foto
 
-        result = User.db["users"].update_one({"_id": ObjectId(user_id)}, {"$set": update_data})
+        result = User.db["users"].update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": update_data}
+        )
+
         if result.modified_count:
             return User.find_by_id(user_id)
-        else:
-            return None
+        return None
+    
     @staticmethod
     def update_fields(user_id, update_fields: dict):
         User.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": update_fields})

@@ -27,11 +27,14 @@ def kirim_notif_pendamping(user_id, label, accuracy, kehamilan_id=None):
     tokens = []
 
     for p in pendamping_list:
-        token = p.get("fcmToken")
+        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("fcm_token")
 
-        print("DEBUG pendamping:", p.get("nama"))
-        print("DEBUG token:", token)
-        print("DEBUG partner_id match:", p.get("partner_id"))
+        print("==== DEBUG PENDAMPING ====")
+        print("Nama:", p.get("nama"))
+        print("Role:", p.get("role"))
+        print("Partner:", p.get("partner_id"))
+        print("Token:", token)
+        print("===========================")
 
         if token:
             tokens.append(token)

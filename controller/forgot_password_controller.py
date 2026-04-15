@@ -1,106 +1,121 @@
-from flask import request, jsonify
-from bson.objectid import ObjectId
-from datetime import datetime, timedelta
 import random
-import smtplib
-from email.mime.text import MIMEText
+import datetime
+from flask import request, jsonify
 from werkzeug.security import generate_password_hash
+from dateutil import parser
 from models.datauser_model import User
-from models.userlog_model import UserLog
+from utils.mailer import send_whatsapp
+
 OTP_EXPIRE_MINUTES = 10
 
-def send_email(to_email, subject, message):
-    smtp_server = "smtp.gmail.com"
-    smtp_port = 587
-    smtp_user = "nurafifahuswatunkh@gmail.com"        # Ganti sesuai email kamu
-    smtp_password = "epkw hpxz igfv qyrx"     # Ganti sesuai password/app password
 
-    msg = MIMEText(message)
-    msg['Reply-To'] = smtp_user
-    msg['Subject'] = subject
-    msg['From'] = smtp_user
-    msg['To'] = to_email
-
-    try:
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
-        server.login(smtp_user, smtp_password)
-        server.sendmail(smtp_user, [to_email], msg.as_string())
-        server.quit()
-        print("Berhasil mengirim email.")
-        return True
-    except Exception as e:
-        print("Failed to send email:", e)
-        return False
+# ================================
+# REQUEST OTP (VIA WHATSAPP)
+# ================================
 def request_otp():
-    data = request.get_json()
-    email = data.get('email')
+    try:
+        data = request.get_json()
+        phone = data.get("phone")
 
-    if not email:
-        return jsonify({"error": "Email harus diisi"}), 400
+        if not phone:
+            return jsonify({"error": "Nomor WhatsApp harus diisi"}), 400
 
-    user = User.find_by_email(email)
-    if not user:
-        return jsonify({"error": "Email tidak ditemukan"}), 404
+        # normalize 08 -> 62
+        if phone.startswith("08"):
+            phone = "62" + phone[1:]
 
-    user_id = user["_id"]
-    otp = f"{random.randint(100000, 999999)}"
-    otp_data = {
-        "otp": otp,
-        "otp_expired_at": datetime.utcnow() + timedelta(minutes=OTP_EXPIRE_MINUTES)
-    }
-    User.db.users.update_one({"_id": ObjectId(user_id)}, {"$set": otp_data})
+        user = User.find_by_phone(phone)
+        if not user:
+            return jsonify({"error": "Nomor tidak terdaftar"}), 404
 
-    subject = "Kode OTP untuk Reset Password"
-    message = f"Kode OTP Anda adalah: {otp}. Kode ini berlaku selama {OTP_EXPIRE_MINUTES} menit."
-    success = send_email(email, subject, message)
+        otp = str(random.randint(100000, 999999))
 
-    logger = UserLog(User.db)
-    if success:
-        logger.log_activity(user_id, action="request_otp", status="success", keterangan="OTP dikirim")
-        return jsonify({"message": "OTP berhasil dikirim ke email"}), 200
-    else:
-        logger.log_activity(user_id, action="request_otp", status="failed", keterangan="Gagal mengirim email OTP")
-        return jsonify({"error": "Gagal mengirim email"}), 500
+        User.update_fields(user["_id"], {
+            "otp": otp,
+            "otp_created_at": datetime.datetime.utcnow().isoformat()
+        })
 
+        message = f"""
+Halo {user.get('nama')},
+
+Anda menerima permintaan untuk mengatur ulang password akun PregMate Anda.
+
+Kode OTP Anda adalah: {otp}
+Berlaku selama: 10 menit
+
+Silakan masukkan kode OTP ini di aplikasi PregMate untuk melanjutkan proses reset password.
+
+Demi keamanan akun Anda, jangan bagikan kode ini kepada siapapun.
+
+Salam hangat,
+Tim PregMate
+"""
+
+        send_whatsapp(phone, message)
+
+        return jsonify({"message": "OTP berhasil dikirim ke WhatsApp"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ================================
+# RESET PASSWORD (VIA OTP WHATSAPP)
+# ================================
 def reset_password():
-    data = request.get_json()
-    email = data.get('email')
-    otp = data.get('otp')
-    new_password = data.get('new_password')
+    try:
+        data = request.get_json()
 
-    if not email or not otp or not new_password:
-        return jsonify({"error": "Email, OTP, dan password baru harus diisi"}), 400
+        phone = data.get("phone")
+        otp = data.get("otp")
+        new_password = data.get("new_password")
 
-    user = User.find_by_email(email)
-    if not user:
-        return jsonify({"error": "Email tidak ditemukan"}), 404
+        if not phone or not otp or not new_password:
+            return jsonify({"error": "Data tidak lengkap"}), 400
 
-    user_id = user["_id"]
-    stored_otp = user.get('otp')
-    otp_expired_at = user.get('otp_expired_at')
+        if phone.startswith("08"):
+            phone = "62" + phone[1:]
 
-    logger = UserLog(User.db)
+        user = User.find_by_phone(phone)
+        if not user:
+            return jsonify({"error": "User tidak ditemukan"}), 404
 
-    if stored_otp != otp:
-        logger.log_activity(user_id, action="reset_password", status="failed", keterangan="OTP salah")
-        return jsonify({"error": "OTP salah"}), 400
+        stored_otp = user.get("otp")
+        otp_created = user.get("otp_created_at")
 
-    if not otp_expired_at or datetime.utcnow() > otp_expired_at:
-        logger.log_activity(user_id, action="reset_password", status="failed", keterangan="OTP kadaluwarsa")
-        return jsonify({"error": "OTP sudah kadaluwarsa"}), 400
+        if stored_otp != otp:
+            return jsonify({"error": "OTP salah"}), 400
 
-    hashed_password = generate_password_hash(new_password)
+        if not otp_created:
+            return jsonify({"error": "OTP tidak valid"}), 400
 
-    User.db.users.update_one(
-        {"_id": ObjectId(user_id)},
-        {"$set": {
+        otp_time = parser.isoparse(otp_created)
+
+        if (datetime.datetime.utcnow() - otp_time).total_seconds() > 600:
+            return jsonify({"error": "OTP sudah kadaluarsa"}), 400
+
+        hashed_password = generate_password_hash(new_password)
+
+        User.update_fields(user["_id"], {
             "password": hashed_password,
             "otp": None,
-            "otp_expired_at": None,
-            "otp_verified": True ,
-        }}
-    )
+            "otp_created_at": None
+        })
 
-    logger.log_activity(user_id, action="reset_password", status="success", keterangan="Password berhasil direset")
-    return jsonify({"message": "Password berhasil direset"}), 200
+        message = f"""
+Halo {user.get('nama')},
+
+Password akun PregMate Anda telah berhasil diperbarui.
+
+Jika Anda tidak merasa melakukan perubahan ini, segera hubungi tim PregMate untuk keamanan akun Anda.
+
+Terima kasih,
+Tim PregMate
+"""
+
+        send_whatsapp(phone, message)
+
+        return jsonify({"message": "Password berhasil direset"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

@@ -16,50 +16,56 @@ def set_db(database):
     global db
     db = database
 
+def format_phone(phone):
+    if phone.startswith("08"):
+        return "62" + phone[1:]
+    return phone
+
 # ======== LOGIN MANUAL ========
 def login_user():
     data = request.get_json()
-    email = data.get("email")
+
+    phone = data.get("phone")
     password = data.get("password")
 
-    if not email or not password:
-        return jsonify({"success": False, "message": "Email dan Password harus diisi"}), 400
+    if not phone or not password:
+        return jsonify({
+            "success": False,
+            "message": "Nomor WhatsApp dan Password harus diisi"
+        }), 400
 
-    user = User.find_by_email(email)
+    # format 08 -> 62
+    if phone.startswith("08"):
+        phone = "62" + phone[1:]
+
+    user = User.find_by_phone(phone)
+
     if not user:
-        return jsonify({"success": False, "message": "Email tidak terdaftar"}), 404
+        return jsonify({
+            "success": False,
+            "message": "Nomor tidak terdaftar"
+        }), 404
 
     if not check_password_hash(user["password"], password):
-        return jsonify({"success": False, "message": "Password salah"}), 401
-
-    if not user.get("otp_verified", False):
-        return jsonify({"success": False, "message": "Akun belum diverifikasi OTP"}), 403
-
-    session["user_id"] = str(user["_id"])
-    session["user_name"] = user["nama"]
+        return jsonify({
+            "success": False,
+            "message": "Password salah"
+        }), 401
 
     access_token = create_access_token(
         identity=str(user["_id"]),
         expires_delta=timedelta(hours=1)
     )
 
-    UserLog(db).log_activity(
-        str(user["_id"]),
-        "login",
-        status="success",
-        keterangan="Login manual"
-    )
-
     return jsonify({
         "success": True,
-        "message": "Login berhasil",
         "token": access_token,
         "user": {
             "_id": str(user["_id"]),
             "nama": user.get("nama", ""),
-            "email": user["email"],
+            "phone": user.get("phone", ""),
             "foto": user.get("foto", ""),
-            "role": user.get("role", "ibu"),   # ⭐ TAMBAHAN
+            "role": user.get("role", "ibu"),
             "is_validated": user.get("is_validated", False)
         }
     }), 200

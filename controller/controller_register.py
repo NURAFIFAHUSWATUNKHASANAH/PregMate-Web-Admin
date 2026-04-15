@@ -4,12 +4,21 @@ import datetime
 from flask import request, jsonify
 from werkzeug.security import generate_password_hash
 from flask_jwt_extended import create_access_token
-from dateutil import parser
-
 from models.datauser_model import User
-from utils.mailer import send_email
+from utils.mailer import send_email, send_whatsapp
+from dateutil import parser
+import random
+import string
+import datetime
+from flask import request, jsonify
+from werkzeug.security import generate_password_hash
+from models.datauser_model import User
+from utils.mailer import send_whatsapp
 
 
+# ================================
+# SET DB
+# ================================
 def set_db(database):
     global db
     db = database
@@ -17,278 +26,193 @@ def set_db(database):
 
 
 # ================================
-# GENERATE PASSWORD RANDOM SUAMI
+# NORMALIZE PHONE
+# ================================
+def normalize_phone(phone):
+    if phone and phone.startswith("08"):
+        return "62" + phone[1:]
+    return phone
+
+
+# ================================
+# GENERATE PASSWORD SUAMI
 # ================================
 def generate_random_password(length=8):
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
 
 
-# ================================
-# REGISTER USER
-# ================================
 def register_user():
     try:
         data = request.get_json()
-        if not data:
-            return jsonify({"message": "Request harus JSON"}), 400
 
-        # ========================
-        # DATA IBU
-        # ========================
+        # ================= IBU =================
         nama = data.get("nama")
-        email = data.get("email")
+        phone = normalize_phone(data.get("phone"))
         password = data.get("password")
 
-        # ========================
-        # DATA SUAMI
-        # ========================
+        # ================= SUAMI =================
         nama_suami = data.get("nama_suami")
-        email_suami = data.get("email_suami")
+        phone_suami = normalize_phone(data.get("phone_suami"))
 
-        if not nama or not email or not password:
-            return jsonify({
-                "message": "Nama, email, dan password harus diisi"
-            }), 400
+        # VALIDASI
+        if not nama or not phone or not password:
+            return jsonify({"message": "Data ibu harus lengkap"}), 400
 
         if len(password) < 6:
-            return jsonify({
-                "message": "Password minimal 6 karakter"
-            }), 400
+            return jsonify({"message": "Password minimal 6 karakter"}), 400
 
-        if User.find_by_email(email):
-            return jsonify({
-                "message": "Email sudah digunakan"
-            }), 400
+        # CEK DUPLIKAT IBU
+        if User.find_by_phone(phone):
+            return jsonify({"message": "Nomor ibu sudah digunakan"}), 400
 
-        # ========================
         # HASH PASSWORD IBU
-        # ========================
         hashed_password = generate_password_hash(password)
 
-        # ========================
-        # OTP IBU
-        # ========================
+        # OTP
         otp = str(random.randint(100000, 999999))
 
-        # ========================
-        # CREATE AKUN IBU
-        # ========================
-        ibu_data = {
+        # ================= CREATE IBU =================
+        ibu_id = User.insert_user({
             "nama": nama,
-            "email": email,
+            "phone": phone,
             "password": hashed_password,
             "role": "ibu",
             "partner_id": None,
             "otp": otp,
             "otp_verified": False,
-            "otp_created_at": datetime.datetime.utcnow().isoformat(),
-            "is_validated": False
-        }
-
-        ibu_id = User.insert_user(ibu_data)
-
-        if not ibu_id:
-            return jsonify({"message": "Gagal membuat akun ibu"}), 500
+            "otp_created_at": datetime.datetime.utcnow().isoformat()
+        })
 
         suami_id = None
 
-        # ========================
-        # CREATE AKUN SUAMI
-        # ========================
-        if nama_suami and email_suami:
+        # ================= CREATE SUAMI =================
+        if nama_suami and phone_suami:
 
-            if User.find_by_email(email_suami):
-                return jsonify({
-                    "message": "Email suami sudah digunakan"
-                }), 400
+            if User.find_by_phone(phone_suami):
+                return jsonify({"message": "Nomor suami sudah digunakan"}), 400
 
-            password_suami_plain = generate_random_password()
-            password_suami_hash = generate_password_hash(password_suami_plain)
+            plain_password_suami = generate_random_password()
 
-            suami_data = {
+            suami_id = User.insert_user({
                 "nama": nama_suami,
-                "email": email_suami,
-                "password": password_suami_hash,
+                "phone": phone_suami,
+                "password": generate_password_hash(plain_password_suami),
                 "role": "pendamping",
                 "partner_id": str(ibu_id),
-                "is_active": True,
+                "otp": None,
                 "otp_verified": True
-            }
+            })
 
-            suami_id = User.insert_user(suami_data)
-
-            # update relasi
+            # link ibu ↔ suami
             User.update_fields(str(ibu_id), {
                 "partner_id": str(suami_id)
             })
 
-            # ========================
-            # EMAIL KE SUAMI
-            # ========================
-            subject_suami = "Akun Pendamping PregMate"
-            body_suami = f"""
-Halo {nama_suami},
+            # ================= WA SUAMI (PROFESSIONAL) =================
+            send_whatsapp(
+                phone_suami,
+f"""
+Halo Bapak {nama_suami},
 
-Anda telah didaftarkan sebagai pendamping oleh {nama}.
+Akun Anda sebagai pendamping di aplikasi PregMate telah berhasil dibuat.
 
-Email : {email_suami}
-Password : {password_suami_plain}
+Anda akan mendampingi Ibu {nama} dalam perjalanan kesehatan kehamilan.
 
-Silakan login dan ubah password Anda.
+Berikut detail akun Anda:
+Nama        : {nama_suami}
+Nomor Login : {phone_suami}
+Password    : {plain_password_suami}
+
+Langkah selanjutnya:
+1. Unduh aplikasi PregMate di smartphone Anda.
+2. Login menggunakan nomor dan password di atas.
+3. Demi keamanan, segera ubah password setelah login pertama kali.
+
+Terima kasih telah menjadi pendamping dalam perjalanan kesehatan Ibu {nama}.
+
+Salam hangat,
+Tim PregMate
 """
+            )
 
-            success_suami = send_email(email_suami, subject_suami, body_suami)
+        # ================= WA IBU (OTP PROFESSIONAL) =================
+        send_whatsapp(
+            phone,
+f"""
+Halo Ibu {nama},
 
-            if not success_suami:
-                print("WARNING: Email ke suami gagal")
+Selamat datang di PregMate, aplikasi pendamping kesehatan ibu hamil.
 
-        # ========================
-        # EMAIL OTP KE IBU
-        # ========================
-        subject = "Kode Verifikasi OTP"
-        body = f"""
-Halo {nama},
+Untuk mengaktifkan akun Anda, silakan gunakan kode OTP berikut:
 
-Kode OTP Anda adalah:
+Kode OTP : {otp}
+Berlaku  : 10 menit
 
-{otp}
+Cara verifikasi:
+Masukkan kode OTP tersebut pada aplikasi PregMate.
 
-Kode ini berlaku selama 10 menit.
+Demi keamanan akun Anda, jangan pernah membagikan kode ini kepada siapapun.
+
+Terima kasih telah mempercayai PregMate sebagai pendamping kehamilan Anda.
+
+Salam hangat,
+Tim PregMate
 """
+        )
 
-        success_otp = send_email(email, subject, body)
-
-        # 🔥 HANDLE EMAIL GAGAL
-        if not success_otp:
-            print("WARNING: Email OTP gagal dikirim")
-            print("OTP DEBUG:", otp)
-
-            return jsonify({
-                "message": "Registrasi berhasil, tapi email OTP gagal dikirim",
-                "user_id": str(ibu_id),
-                "partner_created": suami_id is not None,
-                "otp_debug": otp  # 🔥 untuk testing
-            }), 201
-
-        # ========================
-        # SUCCESS NORMAL
-        # ========================
         return jsonify({
-            "message": "Registrasi berhasil, silakan cek email untuk OTP",
+            "message": "Registrasi berhasil",
             "user_id": str(ibu_id),
             "partner_created": suami_id is not None
         }), 201
 
     except Exception as e:
-        print("ERROR REGISTER:", str(e))
-        return jsonify({
-            "message": f"Gagal registrasi: {e}"
-        }), 500
-
+        print("ERROR REGISTER:", e)
+        return jsonify({"message": str(e)}), 500
 # ================================
 # VERIFY OTP
 # ================================
+
 def verify_otp():
-
     try:
-
         data = request.get_json()
 
         user_id = data.get("user_id")
         otp_input = data.get("otp")
 
         if not user_id or not otp_input:
-            return jsonify({
-                "message": "User ID dan OTP harus diisi"
-            }), 400
-
-        user = User.find_by_id(user_id)
-
-        if not user:
-            return jsonify({
-                "message": "User tidak ditemukan"
-            }), 404
-
-        if user.get("otp_verified"):
-            return jsonify({
-                "message": "Email sudah terverifikasi"
-            }), 400
-
-        now = datetime.datetime.utcnow()
-
-        otp_created = parser.isoparse(user.get("otp_created_at"))
-
-        if (now - otp_created).total_seconds() > 600:
-            return jsonify({
-                "message": "Kode OTP sudah kedaluwarsa"
-            }), 400
-
-        if otp_input == user.get("otp"):
-
-            User.update_fields(user_id, {
-
-                "otp_verified": True,
-                "otp": None,
-                "otp_created_at": None
-
-            })
-
-            token = create_access_token(
-                identity=str(user_id),
-                expires_delta=datetime.timedelta(hours=1)
-            )
-
-            return jsonify({
-                "message": "Verifikasi berhasil",
-                "token": token
-            }), 200
-
-        else:
-
-            return jsonify({
-                "message": "Kode OTP salah"
-            }), 400
-
-    except Exception as e:
-
-        print(f"Error OTP: {e}")
-
-        return jsonify({
-            "message": f"Terjadi kesalahan: {e}"
-        }), 500
-    
-def verify_otp():
-    try:
-        data = request.get_json()
-        user_id = data.get("user_id")
-        otp_input = data.get("otp")
-
-        if not user_id or not otp_input:
-            return jsonify({"message": "User ID dan OTP harus diisi"}), 400
+            return jsonify({"message": "Data tidak lengkap"}), 400
 
         user = User.find_by_id(user_id)
         if not user:
             return jsonify({"message": "User tidak ditemukan"}), 404
 
         if user.get("otp_verified"):
-            return jsonify({"message": "Email sudah terverifikasi"}), 400
+            return jsonify({"message": "Sudah diverifikasi"}), 400
 
-        now = datetime.datetime.utcnow()
         otp_created = parser.isoparse(user.get("otp_created_at"))
-        if (now - otp_created).total_seconds() > 600:
-            return jsonify({"message": "Kode OTP sudah kedaluwarsa"}), 400
 
-        if otp_input == user.get("otp"):
-            User.update_fields(user_id, {
-                "otp_verified": True,
-                "otp": None,
-                "otp_created_at": None
-            })
-            token = create_access_token(identity=str(user_id), expires_delta=datetime.timedelta(hours=1))
-            return jsonify({"message": "Verifikasi berhasil", "token": token}), 200
-        else:
-            return jsonify({"message": "Kode OTP salah"}), 400
+        if (datetime.datetime.utcnow() - otp_created).total_seconds() > 600:
+            return jsonify({"message": "OTP kadaluarsa"}), 400
+
+        if otp_input != user.get("otp"):
+            return jsonify({"message": "OTP salah"}), 400
+
+        # update
+        User.update_fields(user_id, {
+            "otp_verified": True,
+            "otp": None,
+            "otp_created_at": None
+        })
+
+        token = create_access_token(identity=str(user_id))
+
+        return jsonify({
+            "message": "Berhasil verifikasi",
+            "token": token
+        }), 200
+
     except Exception as e:
-        print(f"Error OTP: {e}")
-        return jsonify({"message": f"Terjadi kesalahan: {e}"}), 500
+        print(e)
+        return jsonify({"message": str(e)}), 500
