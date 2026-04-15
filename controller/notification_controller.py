@@ -110,27 +110,28 @@ def kirim_notif_mood(user_id, pesan, kehamilan_id=None):
             print("Gagal kirim notif:", e)
 
 def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
+    # Pastikan ID dalam format string untuk pencarian partner
+    user_id_str = str(user_id)
 
-    user_id = str(user_id)
-
+    # Cari pendamping yang terhubung dengan Ibu ini
     pendamping_list = list(users_collection.find({
         "role": "pendamping",
-        "partner_id": user_id
+        "partner_id": user_id_str
     }))
 
     if not pendamping_list:
-        print("Tidak ada pendamping")
+        print(f"Tidak ada pendamping ditemukan untuk user_id: {user_id_str}")
         return
 
     pesan = f"Ibu hamil menyelesaikan latihan {label} selama {durasi} menit 🤰"
-
     success = 0
 
     for p in pendamping_list:
-        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("fcm_token") or p.get("token")
+        # Ambil token dari berbagai kemungkinan field (standarisasi)
+        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("token")
 
         if not token:
-            print("Token kosong:", p.get("nama"))
+            print(f"Skip: Pendamping {p.get('nama')} tidak memiliki token.")
             continue
 
         try:
@@ -143,34 +144,39 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
             )
 
             response = messaging.send(message)
-            print("SUCCESS:", response)
+            print(f"SUCCESS mengirim ke {p.get('nama')}: {response}")
             success += 1
 
         except Exception as e:
-            print("❌ TOKEN INVALID / EXPIRED:", token)
-            print("ERROR:", e)
+            # Jika error "Requested entity was not found" atau "invalid token"
+            print(f"❌ TOKEN INVALID/EXPIRED untuk {p.get('nama')}: {token}")
+            print(f"Detail Error: {e}")
 
-            # 🔥 AUTO HAPUS TOKEN YANG SUDAH MATI
+            # BERSIHKAN SEMUA FIELD TOKEN YANG MUNGKIN ADA AGAR TIDAK ERROR LAGI
             users_collection.update_one(
                 {"_id": p["_id"]},
-                {"$unset": {"fcmToken": ""}}
+                {"$unset": {
+                    "fcmToken": "", 
+                    "tokenFCM": "", 
+                    "token": ""
+                }}
             )
+            print(f"Database Updated: Token sampah untuk {p.get('nama')} telah dihapus.")
 
-    print("Notifikasi terkirim:", success)
+    print(f"Total notifikasi terkirim: {success}")
 
-    # SIMPAN KE DB (AMAN)
+    # SIMPAN KE HISTORY INFORMASI
     if informasi_collection is not None:
         informasi_collection.insert_one({
-            "user_id": user_id,
-            "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id else None,
+            "user_id": user_id_str,
+            "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id and ObjectId.is_valid(kehamilan_id) else None,
             "tipe": "relaksasi",
             "label": label,
             "durasi": durasi,
             "pesan": pesan,
             "tanggal": datetime.utcnow()
         })
-
-    print("MASUK FUNGSI RELAKSASI")
+        print("Data relaksasi berhasil disimpan ke database.")
 
 def kirim_notif_pengingat_harian(user):
 
