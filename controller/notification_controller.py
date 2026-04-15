@@ -118,23 +118,22 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
         "partner_id": user_id
     }))
 
-    tokens = []
-
-    for p in pendamping_list:
-        token = p.get("fcmToken")
-        if token:
-            tokens.append(token)
-
-    if not tokens:
-        print("Tidak ada token pendamping")
+    if not pendamping_list:
+        print("Tidak ada pendamping")
         return
-
-    pesan = f"Ibu hamil menyelesaikan latihan {label} selama {durasi} menit 🤰"
 
     success = 0
 
-    for token in tokens:
+    for p in pendamping_list:
+        token = p.get("fcmToken")
+
+        if not token:
+            print("Token kosong untuk:", p.get("nama"))
+            continue
+
         try:
+            pesan = f"Ibu hamil menyelesaikan latihan {label} selama {durasi} menit 🤰"
+
             message = messaging.Message(
                 notification=messaging.Notification(
                     title="Latihan Relaksasi Selesai",
@@ -143,27 +142,34 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
                 token=token
             )
 
-            messaging.send(message)
+            response = messaging.send(message)
+            print("SUCCESS SEND:", response)
             success += 1
 
         except Exception as e:
-            print("Gagal kirim notif:", e)
+            print("❌ TOKEN INVALID / ERROR:", token)
+            print("DETAIL ERROR:", e)
+
+            # 🔥 HAPUS TOKEN YANG SUDAH ERROR (IMPORTANT FIX)
+            users_collection.update_one(
+                {"_id": p["_id"]},
+                {"$unset": {"fcmToken": ""}}
+            )
 
     print("Notifikasi terkirim:", success)
 
-    # 🔥 SIMPAN KE KOLEKSI INFORMASI
+    # SIMPAN KE DB
     informasi_collection.insert_one({
         "user_id": user_id,
         "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id else None,
-        "tipe": "relaksasi",  # 🔥 pembeda penting
+        "tipe": "relaksasi",
         "label": label,
         "durasi": durasi,
         "pesan": pesan,
         "tanggal": datetime.utcnow()
     })
-    
-    print("MASUK FUNGSI RELAKSASI")
 
+    print("MASUK FUNGSI RELAKSASI")
 
 def kirim_notif_pengingat_harian(user):
 
