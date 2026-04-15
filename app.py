@@ -19,6 +19,7 @@ from controller.pregnancy_controller import dashboard_kehamilan, dashboard_keham
 from firebase_init import init_firebase
 from models.craving_model import Craving
 from models.data_kehamilan_model import DataKehamilan
+from models.tas_bersalin_model import TasBersalinModel
 from scheduler import start_scheduler
 from route_halaman.route_meditation import meditation_bp, set_db as set_meditation_db
 from ai_babyname import generate_baby_name
@@ -103,6 +104,7 @@ set_informasi_db(db)
 set_notif_db(db)
 Craving.set_db(db)
 KalkulatorModel.set_db(db)
+TasBersalinModel.set_db(db)
 
 
 # ============================== BLUEPRINT REGISTRASI ==============================
@@ -121,6 +123,7 @@ def register_blueprints():
     from route_halaman.route_dashboard import dashboard_bp
     from route_halaman.route_informasi import informasi_bp
     from route_halaman.craving_route import craving_bp
+    from route_halaman.tasbersalin_route import tasbersalin_bp
     app.register_blueprint(histori_user_bp)
 
     app.register_blueprint(forgot_password_bp)
@@ -141,6 +144,7 @@ def register_blueprints():
     app.register_blueprint(admin_user)
     app.register_blueprint(craving_bp, url_prefix="/api")
     app.register_blueprint(kalkulator_bp)
+    app.register_blueprint(tasbersalin_bp)
     
 register_blueprints()
 
