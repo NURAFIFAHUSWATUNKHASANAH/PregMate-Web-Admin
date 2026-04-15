@@ -15,99 +15,87 @@ def set_db(database):
 
 
 def kirim_notif_pendamping(user_id, label, accuracy, kehamilan_id=None):
-
-    # 🔥 PASTIKAN user_id selalu string benar
-    user_id = str(user_id)
+    user_id_str = str(user_id)
 
     pendamping_list = list(users_collection.find({
         "role": "pendamping",
-        "partner_id": user_id
+        "partner_id": user_id_str
     }))
 
-    tokens = []
-
-    for p in pendamping_list:
-        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("fcm_token")
-
-        print("==== DEBUG PENDAMPING ====")
-        print("Nama:", p.get("nama"))
-        print("Role:", p.get("role"))
-        print("Partner:", p.get("partner_id"))
-        print("Token:", token)
-        print("===========================")
-
-        if token:
-            tokens.append(token)
-
-    if not tokens:
-        print("Tidak ada token pendamping")
+    if not pendamping_list:
+        print("Tidak ada pendamping ditemukan.")
         return
 
     success = 0
+    pesan = f"Ibu hamil menyelesaikan latihan {label} dengan akurasi {accuracy:.1f}%"
 
-    for token in tokens:
+    for p in pendamping_list:
+        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("token")
+
+        if not token:
+            continue
+
         try:
             message = messaging.Message(
                 notification=messaging.Notification(
                     title="Latihan Selesai",
-                    body=f"Ibu hamil menyelesaikan latihan {label} dengan akurasi {accuracy:.1f}%"
+                    body=pesan
                 ),
                 token=token
             )
-
             messaging.send(message)
             success += 1
+            print(f"✅ Notif latihan terkirim ke: {p.get('nama')}")
 
         except Exception as e:
-            print("Gagal kirim notif:", e)
+            print(f"❌ Token mati ditemukan pada {p.get('nama')}, menghapus...")
+            users_collection.update_one(
+                {"_id": p["_id"]},
+                {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
+            )
 
-    print("Notifikasi terkirim:", success)
-
-    # 🔥 FIX PENTING: pastikan user_id yang disimpan benar-benar ibu yang login
+    # Simpan ke histori informasi
     informasi_collection.insert_one({
-        "user_id": str(user_id),   # 🔥 FIX DI SINI
-        "kehamilan_id": str(kehamilan_id) if kehamilan_id else None,
+        "user_id": user_id_str,
+        "kehamilan_id": ObjectId(kehamilan_id) if kehamilan_id and ObjectId.is_valid(kehamilan_id) else None,
         "tipe": "latihan",
         "label": label,
         "accuracy": accuracy,
-        "pesan": f"Ibu hamil menyelesaikan latihan {label} dengan akurasi {accuracy:.1f}%",
+        "pesan": pesan,
         "tanggal": datetime.utcnow()
     })
 
 def kirim_notif_mood(user_id, pesan, kehamilan_id=None):
-
-    user_id = str(user_id)
+    user_id_str = str(user_id)
 
     pendamping_list = list(users_collection.find({
         "role": "pendamping",
-        "partner_id": user_id
+        "partner_id": user_id_str
     }))
 
-    tokens = []
-
     for p in pendamping_list:
-        token = p.get("fcmToken")
-        if token:
-            tokens.append(token)
+        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("token")
+        
+        if not token:
+            continue
 
-    if not tokens:
-        print("Tidak ada token pendamping")
-        return
-
-    for token in tokens:
         try:
             message = messaging.Message(
                 notification=messaging.Notification(
                     title="Mood Bunda Hari Ini 🤰",
-                    body=pesan  # ✅ hanya versi pendek
+                    body=pesan
                 ),
                 token=token
             )
-
             messaging.send(message)
+            print(f"✅ Notif mood terkirim ke: {p.get('nama')}")
 
         except Exception as e:
-            print("Gagal kirim notif:", e)
+            print(f"❌ Token mati pada mood: {p.get('nama')}")
+            users_collection.update_one(
+                {"_id": p["_id"]},
+                {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
+            )
 
 def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
     # Pastikan ID dalam format string untuk pencarian partner
@@ -179,9 +167,8 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
         print("Data relaksasi berhasil disimpan ke database.")
 
 def kirim_notif_pengingat_harian(user):
-
-    user_id = str(user.get("_id")) if user.get("_id") else None
-    token = user.get("fcmToken")
+    # 'user' di sini adalah objek dokumen user dari MongoDB
+    token = user.get("fcmToken") or user.get("tokenFCM") or user.get("token")
 
     if not token:
         return
@@ -190,17 +177,19 @@ def kirim_notif_pengingat_harian(user):
         message = messaging.Message(
             notification=messaging.Notification(
                 title="Pengingat Latihan Harian",
-                body="Hari ini kamu belum melakukan latihan. Yuk lakukan latihan untuk kesehatan ibu dan bayi 🤰"
+                body="Hari ini kamu belum melakukan latihan. Yuk latihan sebentar untuk kesehatan ibu dan bayi 🤰"
             ),
             token=token
         )
-
         messaging.send(message)
-
-        print("Notif pengingat terkirim ke:", user.get("nama"))
+        print(f"✅ Notif pengingat terkirim ke: {user.get('nama')}")
 
     except Exception as e:
-        print("Gagal kirim notif:", e)
+        print(f"❌ Gagal kirim pengingat ke {user.get('nama')}, membersihkan token...")
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
+        )
 
 def cek_latihan_harian(db):
 
