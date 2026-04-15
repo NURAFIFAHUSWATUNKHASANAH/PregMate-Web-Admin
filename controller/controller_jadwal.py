@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from datetime import datetime
 from bson import ObjectId
-from controller.notification_controller import kirim_notif_mood # Import fungsi notif
+from controller.notification_controller import kirim_notif_jadwal
 
 
 jadwal_bp = Blueprint('jadwal', __name__)
@@ -11,12 +11,10 @@ def set_db(database):
     global db
     db = database
 
-
 @jadwal_bp.route('/jadwal', methods=['POST'])
 def buat_jadwal():
     try:
         data = request.get_json()
-
         required_fields = ("user_id", "tanggal", "jam", "pesan", "fcmToken")
         if not all(field in data for field in required_fields):
             return jsonify({"error": "Data tidak lengkap"}), 400
@@ -27,7 +25,7 @@ def buat_jadwal():
         # 1. Update Token User (Ibu)
         db.users.update_one(
             {"_id": ObjectId(user_id)},
-            {"$set": {"fcmToken": fcm_token}} # Gunakan fcmToken agar konsisten
+            {"$set": {"fcmToken": fcm_token}}
         )
 
         # 2. Simpan Jadwal ke DB
@@ -41,22 +39,17 @@ def buat_jadwal():
         }
         db.schedules.insert_one(jadwal_data)
 
-        # 3. 🔥 TAMBAHKAN INI: Kirim Notif ke Pendamping
-        # Kita gunakan format pesan untuk memberitahu pendamping
-        pesan_untuk_pendamping = (
-            f"Bunda membuat jadwal baru: {data['pesan']} "
-            f"pada tanggal {data['tanggal']} jam {data['jam']} 🗓️"
-        )
+        # 3. Kirim Notif dengan Judul yang Benar
+        pesan_notif = f"Bunda membuat jadwal: {data['pesan']} ({data['tanggal']} {data['jam']})"
         
-        # Panggil fungsi notif (pastikan fungsi ini sudah di-import)
         try:
-            kirim_notif_mood(user_id, pesan_untuk_pendamping)
-            print(f"✅ Notif jadwal berhasil dipicu untuk user: {user_id}")
+            # Pakai fungsi khusus jadwal
+            kirim_notif_jadwal(user_id, pesan_notif) 
+            print(f"✅ Notif jadwal terkirim")
         except Exception as e_notif:
-            print(f"⚠️ Jadwal tersimpan, tapi notif gagal: {e_notif}")
+            print(f"⚠️ Gagal kirim notif: {e_notif}")
 
-        return jsonify({"message": "Jadwal berhasil disimpan dan notifikasi terkirim"}), 201
+        return jsonify({"message": "Jadwal berhasil disimpan"}), 201
 
     except Exception as e:
-        print(f"❌ Error memproses jadwal: {e}")
         return jsonify({"error": str(e)}), 500

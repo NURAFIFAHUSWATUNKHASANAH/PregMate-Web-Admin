@@ -191,6 +191,39 @@ def kirim_notif_pengingat_harian(user):
             {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
         )
 
+def kirim_notif_jadwal(user_id, pesan):
+    user_id_str = str(user_id)
+
+    # Cari pendamping
+    pendamping_list = list(users_collection.find({
+        "role": "pendamping",
+        "partner_id": user_id_str
+    }))
+
+    for p in pendamping_list:
+        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("token")
+        
+        if not token:
+            continue
+
+        try:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title="Jadwal Baru Bunda 🗓️", # Judul khusus Jadwal
+                    body=pesan
+                ),
+                token=token
+            )
+            messaging.send(message)
+            print(f"✅ Notif jadwal terkirim ke: {p.get('nama')}")
+
+        except Exception as e:
+            print(f"❌ Token mati pada jadwal: {p.get('nama')}")
+            users_collection.update_one(
+                {"_id": p["_id"]},
+                {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
+            )
+
 def cek_latihan_harian(db):
 
     users = db["users"]
