@@ -127,7 +127,7 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
     success = 0
 
     for p in pendamping_list:
-        token = p.get("fcmToken")
+        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("fcm_token") or p.get("token")
 
         if not token:
             print("Token kosong:", p.get("nama"))
