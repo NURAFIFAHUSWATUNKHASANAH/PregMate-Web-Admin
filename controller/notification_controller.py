@@ -191,39 +191,55 @@ def kirim_notif_pengingat_harian(user):
             {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
         )
 
-def kirim_notif_jadwal(user_id, pesan):
+def kirim_notif_jadwal(user_id, pesan, kehamilan_id=None):
     user_id_str = str(user_id)
 
-    # Cari pendamping
+    # 1. KIRIM KE BUNDA (Diri Sendiri)
+    bunda = users_collection.find_one({"_id": ObjectId(user_id)})
+    if bunda:
+        token_bunda = bunda.get("fcmToken") or bunda.get("tokenFCM") or bunda.get("token")
+        if token_bunda:
+            try:
+                msg_bunda = messaging.Message(
+                    notification=messaging.Notification(
+                        title="Jadwal Berhasil Dibuat 🗓️",
+                        body=pesan
+                    ),
+                    token=token_bunda
+                )
+                messaging.send(msg_bunda)
+                print(f"✅ Notif terkirim ke Bunda: {bunda.get('nama')}")
+            except Exception:
+                print("❌ Gagal kirim ke Bunda (Token invalid)")
+
+    # 2. KIRIM KE PENDAMPING (Pasangan)
     pendamping_list = list(users_collection.find({
         "role": "pendamping",
         "partner_id": user_id_str
     }))
 
     for p in pendamping_list:
-        token = p.get("fcmToken") or p.get("tokenFCM") or p.get("token")
-        
-        if not token:
+        token_p = p.get("fcmToken") or p.get("tokenFCM") or p.get("token")
+        if not token_p:
             continue
 
         try:
             message = messaging.Message(
                 notification=messaging.Notification(
-                    title="Jadwal Baru Bunda 🗓️", # Judul khusus Jadwal
+                    title="Jadwal Baru Bunda 🗓️",
                     body=pesan
                 ),
-                token=token
+                token=token_p
             )
             messaging.send(message)
-            print(f"✅ Notif jadwal terkirim ke: {p.get('nama')}")
-
+            print(f"✅ Notif terkirim ke Pendamping: {p.get('nama')}")
         except Exception as e:
-            print(f"❌ Token mati pada jadwal: {p.get('nama')}")
+            # Bersihkan token mati
             users_collection.update_one(
                 {"_id": p["_id"]},
                 {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
             )
-
+            
 def cek_latihan_harian(db):
 
     users = db["users"]
