@@ -1,3 +1,5 @@
+import traceback
+
 from flask import request, jsonify, render_template, redirect, url_for, current_app
 from models.tips_newborn_model import TipsNewbornModel
 from werkzeug.utils import secure_filename
@@ -25,32 +27,42 @@ def admin_index_tips():
 # ================= CREATE =================
 def admin_create_tips():
     if request.method == "POST":
+        try:
+            video_file = request.files.get("video")
 
-        video_file = request.files.get("video")
+            if not video_file:
+                return "Video wajib diupload", 400
 
-        if not video_file:
-            return "Video wajib diupload", 400
+            filename = secure_filename(video_file.filename)
+            upload_folder = current_app.config["UPLOAD_VIDEO"]
 
-        filename = secure_filename(video_file.filename)
+            # Pastikan folder ada
+            os.makedirs(upload_folder, exist_ok=True)
 
-        upload_folder = current_app.config["UPLOAD_VIDEO"]
+            # Simpan file
+            upload_path = os.path.join(upload_folder, filename)
+            video_file.save(upload_path)
 
-        # 🔥 FIX: auto create folder biar tidak error
-        os.makedirs(upload_folder, exist_ok=True)
+            steps = request.form.getlist("steps[]")
 
-        upload_path = os.path.join(upload_folder, filename)
-        video_file.save(upload_path)
+            # Simpan ke Database
+            TipsNewbornModel.create({
+                "title": request.form["title"],
+                "desc": request.form["desc"],
+                "video": filename,
+                "steps": steps
+            })
 
-        steps = request.form.getlist("steps[]")
+            return redirect(url_for("tips_bp.admin_index_tips"))
 
-        TipsNewbornModel.create({
-            "title": request.form["title"],
-            "desc": request.form["desc"],
-            "video": filename,
-            "steps": steps
-        })
-
-        return redirect(url_for("tips_bp.admin_index_tips"))
+        except Exception as e:
+            # 2. Tangkap detail error dan cetak ke console/log server
+            error_msg = traceback.format_exc()
+            print("=== ERROR DETECTED ===")
+            print(error_msg)
+            
+            # Jika ingin melihat error di browser saat testing, bisa gunakan:
+            return f"Terjadi kesalahan server: {str(e)}", 500
 
     return render_template("tips_newborn/create.html")
 
