@@ -1,0 +1,69 @@
+{% extends 'layouts/layout.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="user-container">
+
+    <!-- HEADER -->
+    <div class="user-header-wrapper">
+
+        <div class="user-title-group">
+            <i class="fas fa-video"></i>
+            <div>
+                <h2>Tips Newborn</h2>
+                <p class="subtitle">Kelola video tutorial bayi</p>
+            </div>
+        </div>
+
+        <a href="{{ url_for('tips_bp.admin_create_tips') }}" class="btn-add-modern">
+    <i class="fas fa-plus"></i>
+    <span>Tambah Video</span>
+</a>
+
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="user-table">
+
+            <thead>
+                <tr>
+                    <th>Judul</th>
+                    <th>Deskripsi</th>
+                    <th>Video</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for t in tips %}
+                <tr>
+                    <td>{{ t.title }}</td>
+                    <td>{{ t.desc }}</td>
+                    <td>
+                        <video width="120" controls>
+                            <source src="{{ t.video_url }}">
+                        </video>
+                    </td>
+                    <td>
+<a href="{{ url_for('tips_bp.admin_edit_tips', id=t.id) }}" class="btn-edit">
+    <i class="fas fa-pen"></i>
+</a>
+
+<a href="{{ url_for('tips_bp.admin_delete_tips', id=t.id) }}" class="btn-delete">
+    <i class="fas fa-trash"></i>
+</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,147 @@
+{% extends 'layouts/layout.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+/* Badge tambahan untuk type */
+.badge-wajib {
+    background: #ff4d6d;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge-optional {
+    background: #6c757d;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* sedikit rapihin table */
+.user-table td {
+    vertical-align: middle;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-container">
+
+    <!-- HEADER -->
+    <div class="user-header-wrapper">
+        <div class="user-title-group">
+            <i class="fas fa-suitcase-medical"></i>
+            <div>
+                <h2>Kelola Tas Bersalin</h2>
+                <p class="subtitle">
+                    Master data perlengkapan ibu, bayi & pendamping
+                </p>
+            </div>
+        </div>
+
+        <!-- BUTTON TAMBAH -->
+        <a href="{{ url_for('tasbersalin_bp.admin_create_tas') }}" class="btn-add-modern">
+            <i class="fas fa-plus"></i>
+            <span>Tambah Item</span>
+        </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>Nama Item</th>
+                    <th>Detail</th>
+                    <th>Kategori</th>
+                    <th>Type</th>
+                    <th style="text-align:center;">Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% if items %}
+                    {% for item in items %}
+                    <tr>
+
+                        <!-- NAMA -->
+                        <td><strong>{{ item.name }}</strong></td>
+
+                        <!-- DETAIL -->
+                        <td>{{ item.detail }}</td>
+
+                        <!-- KATEGORI -->
+                        <td>
+                            <span class="badge 
+                                {% if item.category == 'ibu' %}badge-ibu
+                                {% elif item.category == 'bayi' %}badge-bayi
+                                {% else %}badge-pendamping
+                                {% endif %}">
+                                {{ item.category }}
+                            </span>
+                        </td>
+
+                        <!-- TYPE (WAJIB / OPTIONAL) -->
+                        <td>
+                            {% if item.type == 'wajib' %}
+                                <span class="badge-wajib">
+                                    <i class="fas fa-check-circle"></i> Wajib
+                                </span>
+                            {% else %}
+                                <span class="badge-optional">
+                                    <i class="fas fa-circle-info"></i> Optional
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- AKSI -->
+                        <td>
+                            <div class="user-action-buttons">
+
+                                <!-- EDIT -->
+                                <a href="{{ url_for('tasbersalin_bp.admin_edit_tas', id=item._id) }}" 
+                                   class="btn-action btn-edit"
+                                   title="Edit">
+                                    <i class="fas fa-pen-to-square"></i>
+                                </a>
+
+                                <!-- DELETE -->
+                                <a href="#"
+                                   class="btn-action btn-delete btn-hapus"
+                                   data-url="{{ url_for('tasbersalin_bp.admin_delete_tas', id=item._id) }}"
+                                   data-nama="{{ item.name }}"
+                                   title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <i class="fas fa-box-open fa-2x"></i>
+                            <p>Data tas bersalin belum tersedia</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
+{% endblock %}

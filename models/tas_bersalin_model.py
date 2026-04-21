@@ -3,10 +3,12 @@ from bson import ObjectId
 
 class TasBersalinModel:
     collection = None
+    master_collection = None
 
     @classmethod
     def set_db(cls, db):
-        cls.collection = db["tas_bersalin"]
+        cls.collection = db["tas_bersalin"]              # progress user
+        cls.master_collection = db["master_tas_bersalin"] # master data
 
     # ===================== TOGGLE ITEM (SHARED DATA) =====================
     @classmethod
@@ -45,9 +47,31 @@ class TasBersalinModel:
         try:
             k_id = ObjectId(kehamilan_id) if ObjectId.is_valid(kehamilan_id) else kehamilan_id
 
-            return list(cls.collection.find({
+            # 🔥 ambil master (semua item)
+            master_items = list(cls.master_collection.find({}))
+
+            # 🔥 ambil progress user
+            user_items = list(cls.collection.find({
                 "kehamilan_id": k_id
             }))
+
+            result = []
+
+            for m in master_items:
+                # cari apakah sudah dicentang user
+                match = next(
+                    (u for u in user_items if u["name"] == m["name"] and u["category"] == m["category"]),
+                    None
+                )
+
+                result.append({
+                    "name": m["name"],
+                    "detail": m.get("detail", ""),
+                    "category": m["category"],
+                    "isChecked": match["isChecked"] if match else False
+                })
+
+            return result
 
         except Exception as e:
             print(f"❌ Error get_items: {e}")

@@ -1,0 +1,78 @@
+{% extends 'layouts/layout.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+{% endblock %}
+
+{% block content %}
+<div class="form-card">
+
+    <!-- HEADER -->
+    <h2>
+        <i class="fas fa-suitcase-medical" style="margin-right:10px;"></i>
+        Tambah Item Tas Bersalin
+    </h2>
+
+    <form method="POST">
+
+        <!-- NAMA -->
+        <div class="form-group">
+            <label>Nama Item</label>
+            <input 
+                type="text" 
+                name="name" 
+                class="form-control" 
+                placeholder="Contoh: Baju bayi, Popok, dll"
+                required
+            >
+        </div>
+
+        <!-- DETAIL -->
+        <div class="form-group">
+            <label>Detail</label>
+            <textarea 
+                name="detail" 
+                rows="4"
+                class="form-control"
+                placeholder="Deskripsi atau jumlah yang disarankan..."
+            ></textarea>
+        </div>
+
+        <!-- KATEGORI -->
+        <div class="form-group">
+            <label>Kategori</label>
+            <select name="category" class="form-control" required>
+                <option value="">-- Pilih Kategori --</option>
+                <option value="ibu">Ibu</option>
+                <option value="bayi">Bayi</option>
+                <option value="pendamping">Pendamping</option>
+            </select>
+        </div>
+
+        <!-- TYPE (WAJIB / OPTIONAL) -->
+        <div class="form-group">
+            <label>Jenis Item</label>
+            <select name="type" class="form-control" required>
+                <option value="">-- Pilih Jenis --</option>
+                <option value="wajib">Wajib</option>
+                <option value="optional">Optional</option>
+            </select>
+        </div>
+
+        <!-- BUTTON -->
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">
+                Simpan
+            </button>
+
+            <a href="{{ url_for('tasbersalin_bp.admin_index_tas') }}" class="btn-cancel">
+                Batal
+            </a>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

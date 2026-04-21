@@ -19,6 +19,7 @@ from controller.pregnancy_controller import dashboard_kehamilan, dashboard_keham
 from models.craving_model import Craving
 from models.data_kehamilan_model import DataKehamilan
 from models.tas_bersalin_model import TasBersalinModel
+from models.tips_newborn_model import TipsNewbornModel
 from scheduler import start_scheduler
 from route_halaman.route_meditation import meditation_bp, set_db as set_meditation_db
 from ai_babyname import generate_baby_name
@@ -57,6 +58,7 @@ mood_ibu_hamil_collection = db["mood_ibu_hamil"]
 cravings_collection = db["cravings"]
 informasi_collection = db["informasi"]
 
+app.config["UPLOAD_VIDEO"] = os.path.join("static", "videos")
 # ============================== IMPORT MODEL & CONTROLLER ==============================
 
 # Models
@@ -82,7 +84,7 @@ from route_halaman.route_admin_user import admin_user
 from models.craving_model import Craving
 from route_halaman.route_kalkulator import kalkulator_bp
 from models.kalkulator_model import KalkulatorModel
-
+from route_halaman.route_tips_newborn import tips_bp
 
 set_userlog_db(db)
 # Set DB di controller dan model
@@ -106,6 +108,7 @@ set_notif_db(db)
 Craving.set_db(db)
 KalkulatorModel.set_db(db)
 TasBersalinModel.set_db(db)
+TipsNewbornModel.set_db(db)
 
 
 # ============================== BLUEPRINT REGISTRASI ==============================
@@ -146,6 +149,7 @@ def register_blueprints():
     app.register_blueprint(craving_bp, url_prefix="/api")
     app.register_blueprint(kalkulator_bp)
     app.register_blueprint(tasbersalin_bp)
+    app.register_blueprint(tips_bp)
     
 register_blueprints()
 

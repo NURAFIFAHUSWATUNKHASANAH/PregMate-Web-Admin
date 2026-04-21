@@ -1,0 +1,117 @@
+{% extends 'layouts/layout.html' %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+
+    <div class="form-wrapper">
+
+        <!-- HEADER -->
+        <div class="form-header">
+            <div class="form-title-group">
+                <i class="fas fa-video"></i>
+                <div>
+                    <h2>Edit Tips Newborn</h2>
+                    <p class="subtitle">Perbarui video dan informasi tips</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD -->
+        <div class="form-card">
+
+            <form method="POST" enctype="multipart/form-data">
+
+                <!-- TITLE -->
+                <div class="form-group">
+                    <label>Judul Tips</label>
+                    <div class="input-icon">
+                        <i class="fas fa-heading"></i>
+                        <input 
+                            type="text" 
+                            name="title" 
+                            value="{{ item.title }}" 
+                            class="form-control"
+                            placeholder="Masukkan judul tips..."
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- DESC -->
+                <div class="form-group">
+                    <label>Deskripsi</label>
+                    <div class="input-icon">
+                        <i class="fas fa-align-left"></i>
+                        <textarea 
+                            name="desc" 
+                            class="form-control"
+                            placeholder="Masukkan deskripsi..."
+                        >{{ item.desc }}</textarea>
+                    </div>
+                </div>
+
+                <!-- VIDEO -->
+                <div class="form-group">
+                    <label>Video (Opsional jika ingin diganti)</label>
+                    <div class="input-icon">
+                        <i class="fas fa-video"></i>
+                        <input 
+                            type="file" 
+                            name="video" 
+                            accept="video/*" 
+                            class="form-control"
+                        >
+                    </div>
+
+                    <!-- PREVIEW VIDEO -->
+                    {% if item.video %}
+                    <div style="margin-top:10px;">
+                        <video width="200" controls style="border-radius:10px;">
+                            <source src="/static/videos/{{ item.video }}">
+                        </video>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- STEPS -->
+                <div class="form-group">
+                    <label>Langkah-langkah</label>
+                    <div class="input-icon">
+                        <i class="fas fa-list"></i>
+                        <textarea 
+                            name="steps[]" 
+                            class="form-control"
+                            placeholder="Pisahkan dengan enter untuk setiap langkah"
+                        >{% for s in item.steps %}{{ s }}
+{% endfor %}</textarea>
+                    </div>
+                </div>
+
+                <!-- ACTION -->
+                <div class="form-actions">
+
+                    <a href="{{ url_for('tips_bp.admin_index_tips') }}" class="btn-cancel">
+                        <i class="fas fa-arrow-left"></i>
+                        Kembali
+                    </a>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i>
+                        Update
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
