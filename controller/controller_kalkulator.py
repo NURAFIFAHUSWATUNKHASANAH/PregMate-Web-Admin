@@ -8,16 +8,15 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 from models.kalkulator_model import KalkulatorModel
-
+# ================= HITUNG DASHBOARD =================
 def hitung_dashboard(data):
-    import math
-    from datetime import datetime
-    from zoneinfo import ZoneInfo
-
     total_biaya = data.get("total_biaya", 0)
     pakai_bpjs = data.get("pakai_bpjs", False)
+    metode_nabung = data.get("metode_nabung", "bulanan")  # 🔥 NEW
 
+    # =============================
     # 🔥 BPJS
+    # =============================
     if pakai_bpjs:
         total_biaya *= 0.3
 
@@ -27,7 +26,6 @@ def hitung_dashboard(data):
     saldo = total_masuk - total_keluar
     sisa = max(total_biaya - saldo, 0)
 
-    # 🔥 DEFAULT
     bulan = 0
     hari = 0
     sisa_bulan = 1
@@ -36,43 +34,55 @@ def hitung_dashboard(data):
         now = datetime.now(ZoneInfo("Asia/Jakarta"))
 
         # =============================
+        # 🔥 VALIDASI FORMAT TANGGAL
+        # =============================
+        def parse_date_safe(date_str):
+            try:
+                dt = datetime.strptime(date_str, "%Y-%m-%d")
+
+                # 🚨 validasi tahun
+                if dt.year < 2000:
+                    return None
+
+                return dt.replace(tzinfo=ZoneInfo("Asia/Jakarta"))
+            except:
+                return None
+
+        hpl = parse_date_safe(data.get("hpl"))
+        hpht = parse_date_safe(data.get("hpht"))
+
+        # =============================
         # 🔥 PRIORITAS: HPL
         # =============================
-        if data.get("hpl"):
-            hpl = datetime.strptime(data["hpl"], "%Y-%m-%d")
-
-            # 🔥 FIX TIMEZONE (AMAN)
-            if hpl.tzinfo is None:
-                hpl = hpl.replace(tzinfo=ZoneInfo("Asia/Jakarta"))
-
+        if hpl:
             if hpl < now:
                 bulan = 0
                 hari = 0
             else:
-                # 🔥 HITUNG BERDASARKAN HARI (STABIL)
-                selisih_hari = (hpl - now).days
+                selisih = hpl - now
+                total_hari = selisih.days
 
-                bulan = max(selisih_hari // 30, 0)
-                hari = max(selisih_hari % 30, 0)
+                bulan = total_hari // 30
+                hari = total_hari % 30
 
             sisa_bulan = max(bulan, 1)
 
         # =============================
         # 🔥 FALLBACK: HPHT
         # =============================
-        elif data.get("hpht"):
-            hpht = datetime.strptime(data["hpht"], "%Y-%m-%d")
+        elif hpht:
+            usia_kehamilan = (now - hpht).days
+            sisa_hari_total = max(280 - usia_kehamilan, 0)
 
-            if hpht.tzinfo is None:
-                hpht = hpht.replace(tzinfo=ZoneInfo("Asia/Jakarta"))
-
-            usia_hari = (now - hpht).days
-            sisa_hari = max(280 - usia_hari, 0)
-
-            bulan = max(sisa_hari // 30, 0)
-            hari = max(sisa_hari % 30, 0)
+            bulan = sisa_hari_total // 30
+            hari = sisa_hari_total % 30
 
             sisa_bulan = max(bulan, 1)
+
+        else:
+            bulan = 0
+            hari = 0
+            sisa_bulan = 1
 
     except Exception as e:
         print("ERROR HITUNG DASHBOARD:", e)
@@ -84,6 +94,21 @@ def hitung_dashboard(data):
     # 🔥 FINANSIAL
     # =============================
     nabung_per_bulan = sisa / sisa_bulan if sisa_bulan > 0 else sisa
+
+    # =============================
+    # 🔥 HITUNG MINGGU (NEW)
+    # =============================
+    total_minggu = max((bulan * 4) + (hari // 7), 1)
+    nabung_per_minggu = sisa / total_minggu if total_minggu > 0 else sisa
+
+    # =============================
+    # 🔥 PILIH TARGET (NEW)
+    # =============================
+    if metode_nabung == "mingguan":
+        target_nabung = nabung_per_minggu
+    else:
+        target_nabung = nabung_per_bulan
+
     progress = (saldo / total_biaya * 100) if total_biaya > 0 else 0
 
     # =============================
@@ -104,91 +129,114 @@ def hitung_dashboard(data):
         "total_keluar": total_keluar,
         "total_kebutuhan": total_biaya,
         "sisa": sisa,
+
+        # 🔥 TARGET
         "nabung_per_bulan": nabung_per_bulan,
+        "nabung_per_minggu": nabung_per_minggu,
+        "target_nabung": target_nabung,
+        "metode_nabung": metode_nabung,
+
         "progress": progress,
         "insight": insight,
         "sisa_bulan": bulan,
         "sisa_hari": hari
     }
 
+
 # ================= SAVE =================
 def save_kalkulator():
     user_id = get_jwt_identity()
     data = request.json
 
-    KalkulatorModel.save(user_id, data)
+    kehamilan_id = data.get("kehamilan_id")
 
-    return jsonify({
-        "status": "success",
-        "message": "Data tersimpan"
-    })
+    if not kehamilan_id:
+        return jsonify({
+            "status": "error",
+            "message": "kehamilan_id wajib"
+        }), 400
 
+    try:
+        doc_id = KalkulatorModel.save(user_id, data)
 
+        return jsonify({
+            "status": "success",
+            "message": "Data tersimpan",
+
+            # 🔥 FIX: kirim 2 ID penting
+            "kalkulator_id": doc_id,
+            "kehamilan_id": kehamilan_id
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 400
+    
 # ================= DASHBOARD =================
 def get_dashboard():
-    from flask import jsonify
-    from flask_jwt_extended import get_jwt_identity
-    from models.kalkulator_model import KalkulatorModel
+    kehamilan_id = request.args.get("kehamilan_id")
 
-    user_id = get_jwt_identity()
+    if not kehamilan_id:
+        return jsonify({
+            "status": "error",
+            "message": "kehamilan_id wajib"
+        }), 400
 
-    data = KalkulatorModel.get(user_id)
+    data = KalkulatorModel.get(kehamilan_id)
 
-    # 🔥 kalau belum ada data
     if not data:
         return jsonify({
             "status": "success",
             "data": {}
         })
 
-    try:
-        result = hitung_dashboard(data) or {}
+    result = hitung_dashboard(data) or {}
 
-        # 🔥 TAMBAH RIWAYAT (AMAN)
-        result["riwayat"] = data.get("riwayat", [])
+    result["kehamilan_id"] = str(data.get("kehamilan_id"))
+    result["kalkulator_id"] = str(data.get("_id"))
+    result["riwayat"] = data.get("riwayat", [])
 
-        return jsonify({
-            "status": "success",
-            "data": result
-        })
-
-    except Exception as e:
-        print("ERROR GET DASHBOARD:", e)
-
-        # 🔥 fallback biar ga 500
-        return jsonify({
-            "status": "error",
-            "message": "Gagal memuat dashboard",
-            "data": {}
-        }), 200
+    return jsonify({
+        "status": "success",
+        "data": result
+    })
 
 # ================= TABUNG =================
 def tambah_tabungan():
-    user_id = get_jwt_identity()
     data = request.json
 
+    kehamilan_id = data.get("kehamilan_id")
     jumlah = float(data.get("jumlah", 0))
 
-    KalkulatorModel.add_income(user_id, jumlah)
+    if not kehamilan_id:
+        return jsonify({"status": "error", "message": "kehamilan_id wajib"}), 400
+
+    if jumlah <= 0:
+        return jsonify({"status": "error", "message": "jumlah tidak valid"}), 400
+
+    KalkulatorModel.add_income(kehamilan_id, jumlah)
 
     return jsonify({"status": "success"})
 
-
 # ================= PENGELUARAN =================
 def tambah_pengeluaran():
-    user_id = get_jwt_identity()
     data = request.json
 
+    kehamilan_id = data.get("kehamilan_id")
     jumlah = float(data.get("jumlah", 0))
     keterangan = data.get("keterangan", "").strip()
 
-    # 🔥 VALIDASI WAJIB
+    if not kehamilan_id:
+        return jsonify({"status": "error", "message": "kehamilan_id wajib"}), 400
+
     if jumlah <= 0:
         return jsonify({"status": "error", "message": "Jumlah tidak valid"}), 400
 
     if not keterangan:
-        return jsonify({"status": "error", "message": "Keterangan wajib diisi"}), 400
+        return jsonify({"status": "error", "message": "Keterangan wajib"}), 400
 
-    KalkulatorModel.add_expense(user_id, jumlah, keterangan)
+    KalkulatorModel.add_expense(kehamilan_id, jumlah, keterangan)
 
     return jsonify({"status": "success"})

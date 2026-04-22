@@ -1,5 +1,3 @@
-import traceback
-
 from flask import request, jsonify, render_template, redirect, url_for, current_app
 from models.tips_newborn_model import TipsNewbornModel
 from werkzeug.utils import secure_filename
@@ -27,42 +25,32 @@ def admin_index_tips():
 # ================= CREATE =================
 def admin_create_tips():
     if request.method == "POST":
-        try:
-            video_file = request.files.get("video")
 
-            if not video_file:
-                return "Video wajib diupload", 400
+        video_file = request.files.get("video")
 
-            filename = secure_filename(video_file.filename)
-            upload_folder = current_app.config["UPLOAD_VIDEO"]
+        if not video_file:
+            return "Video wajib diupload", 400
 
-            # Pastikan folder ada
-            os.makedirs(upload_folder, exist_ok=True)
+        filename = secure_filename(video_file.filename)
 
-            # Simpan file
-            upload_path = os.path.join(upload_folder, filename)
-            video_file.save(upload_path)
+        upload_folder = current_app.config["UPLOAD_VIDEO"]
 
-            steps = request.form.getlist("steps[]")
+        # 🔥 FIX: auto create folder biar tidak error
+        os.makedirs(upload_folder, exist_ok=True)
 
-            # Simpan ke Database
-            TipsNewbornModel.create({
-                "title": request.form["title"],
-                "desc": request.form["desc"],
-                "video": filename,
-                "steps": steps
-            })
+        upload_path = os.path.join(upload_folder, filename)
+        video_file.save(upload_path)
 
-            return redirect(url_for("tips_bp.admin_index_tips"))
+        steps = request.form.getlist("steps[]")
 
-        except Exception as e:
-            # 2. Tangkap detail error dan cetak ke console/log server
-            error_msg = traceback.format_exc()
-            print("=== ERROR DETECTED ===")
-            print(error_msg)
-            
-            # Jika ingin melihat error di browser saat testing, bisa gunakan:
-            return f"Terjadi kesalahan server: {str(e)}", 500
+        TipsNewbornModel.create({
+            "title": request.form["title"],
+            "desc": request.form["desc"],
+            "video": filename,
+            "steps": steps
+        })
+
+        return redirect(url_for("tips_bp.admin_index_tips"))
 
     return render_template("tips_newborn/create.html")
 
@@ -75,16 +63,24 @@ def admin_edit_tips(id):
 
         video_file = request.files.get("video")
 
+        # default pakai video lama
         filename = item.get("video")
 
         upload_folder = current_app.config["UPLOAD_VIDEO"]
         os.makedirs(upload_folder, exist_ok=True)
 
+        # kalau upload video baru
         if video_file and video_file.filename != "":
             filename = secure_filename(video_file.filename)
             video_file.save(os.path.join(upload_folder, filename))
 
-        steps = request.form.getlist("steps[]")
+        # ================= FIX STEPS =================
+        # ambil dari textarea (string panjang)
+        steps_raw = request.form.get("steps[]", "")
+
+        # pecah jadi array berdasarkan enter
+        steps = [s.strip() for s in steps_raw.split("\n") if s.strip()]
+        # =================================================
 
         TipsNewbornModel.update(id, {
             "title": request.form["title"],
@@ -96,7 +92,6 @@ def admin_edit_tips(id):
         return redirect(url_for("tips_bp.admin_index_tips"))
 
     return render_template("tips_newborn/edit.html", item=item)
-
 
 # ================= DELETE =================
 def admin_delete_tips(id):

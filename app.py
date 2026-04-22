@@ -15,7 +15,7 @@ import config
 
 # Firebase & Scheduler (aktifkan jika kamu pakai)
 from controller import controller_admin_user
-from controller.pregnancy_controller import dashboard_kehamilan, dashboard_kehamilan_pasangan, end_pregnancy, pregnancy_history, submit_validasi_kehamilan, update_kehamilan
+from controller.pregnancy_controller import dashboard_kehamilan, dashboard_kehamilan_pasangan, end_pregnancy, pregnancy_history, pregnancy_history_with_detail, submit_validasi_kehamilan, update_kehamilan
 from models.craving_model import Craving
 from models.data_kehamilan_model import DataKehamilan
 from models.tas_bersalin_model import TasBersalinModel
@@ -416,6 +416,11 @@ def delete_favorite_babyname(name):
         "status": "success",
         "message": "Berhasil dihapus"
     })
+
+@app.route('/pregnancy/history/detail', methods=['GET'])
+@jwt_required()
+def riwayat_kehamilan_detail():
+    return pregnancy_history_with_detail()
 
 @app.route("/save-fcm-token", methods=["POST"])
 @jwt_required()

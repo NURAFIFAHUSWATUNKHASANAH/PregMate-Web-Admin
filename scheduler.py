@@ -2,12 +2,13 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from firebase_admin import messaging
 from datetime import datetime
 from bson import ObjectId
+from zoneinfo import ZoneInfo
 
-from datetime import datetime
-from firebase_admin import messaging
-from bson import ObjectId
+from controller.notification_controller import (
+    cek_latihan_harian,
+    cek_notif_kalkulator
+)
 
-from firebase_admin import messaging
 
 def send_push_notification(token, title, body):
     message = messaging.Message(
@@ -64,14 +65,19 @@ def check_schedule(db):
             print(f"❌ Error memproses jadwal: {e}")
 
 from apscheduler.schedulers.background import BackgroundScheduler
-from controller.notification_controller import cek_latihan_harian
+
+from controller.notification_controller import (
+    cek_latihan_harian,
+    cek_notif_kalkulator
+)
 
 
 def start_scheduler(db):
-
     scheduler = BackgroundScheduler()
 
-    # jalankan setiap hari jam 19:00
+    # =============================
+    # 🔥 1. NOTIF LATIHAN HARIAN
+    # =============================
     scheduler.add_job(
         cek_latihan_harian,
         "cron",
@@ -80,11 +86,28 @@ def start_scheduler(db):
         args=[db]
     )
 
+    # =============================
+    # 🔥 2. NOTIF KALKULATOR (TARGET TABUNGAN)
+    # =============================
+    scheduler.add_job(
+        lambda: cek_notif_kalkulator(db),
+        "cron",
+        hour=17,
+        minute=50
+    )
+
+    # =============================
+    # 🔥 3. JADWAL CUSTOM USER (TERAPI DLL)
+    # =============================
+    scheduler.add_job(
+        lambda: check_schedule(db),
+        "interval",
+        minutes=1
+    )
+
     scheduler.start()
 
-    print("Scheduler pengingat latihan aktif")
-
-def start_scheduler(db):
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(lambda: check_schedule(db), 'interval', minutes=1)
-    scheduler.start()
+    print("✅ Semua scheduler aktif:")
+    print(" - Latihan harian (17:10)")
+    print(" - Notif kalkulator (17:50)")
+    print(" - Jadwal user (tiap 1 menit)")

@@ -85,11 +85,17 @@
                         <i class="fas fa-list"></i>
                         <textarea 
                             name="steps[]" 
-                            class="form-control"
-                            placeholder="Pisahkan dengan enter untuk setiap langkah"
-                        >{% for s in item.steps %}{{ s }}
-{% endfor %}</textarea>
+                            class="form-control" 
+                            rows="6"
+                            placeholder="Pisahkan setiap langkah dengan ENTER"
+                        >{{ (item.steps if item.steps else []) | join('\n') }}</textarea>
                     </div>
+                    <small style="color:#888;">
+                        Contoh:
+                        <br>Langkah 1
+                        <br>Langkah 2
+                        <br>Langkah 3
+                    </small>
                 </div>
 
                 <!-- ACTION -->

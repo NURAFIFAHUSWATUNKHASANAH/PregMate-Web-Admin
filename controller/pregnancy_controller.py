@@ -7,6 +7,12 @@ from models.datauser_model import User
 from models.data_kehamilan_model import DataKehamilan
 from models.kalkulator_model import KalkulatorModel
 
+def format_ddmmyyyy(date_str):
+    try:
+        date_obj = datetime.strptime(date_str, "%Y-%m-%d")
+        return date_obj.strftime("%d-%m-%Y")
+    except:
+        return date_str
 
 def hitung_hpl(hpht):
     hpht_date = datetime.strptime(hpht, "%Y-%m-%d")
@@ -183,7 +189,7 @@ def dashboard_kehamilan():
             "usia_kehamilan_minggu": minggu,
             "usia_kehamilan_hari": hari,
             "trimester": trimester,
-            "hpl": data["hpl"],
+            "hpl": format_ddmmyyyy(data.get("hpl")),
             
             "hpht": data.get("hpht"),
             "tinggi_badan": data.get("tinggi_badan"),
@@ -246,7 +252,7 @@ def pregnancy_history():
                 "id": str(d["_id"]),
                 "kehamilan_ke": d.get("kehamilan_ke", 0),
                 "hpht": d.get("hpht"),
-                "hpl": d.get("hpl"),
+                "hpl": format_ddmmyyyy(d.get("hpl")),
                 "status": d.get("status", "active"),
                 "start_date": d.get("start_date").isoformat() if d.get("start_date") else None,
                 "end_date": d.get("end_date").isoformat() if d.get("end_date") else None,
@@ -321,7 +327,7 @@ def dashboard_kehamilan_pasangan():
             "usia_kehamilan_minggu": minggu,
             "usia_kehamilan_hari": hari,
             "trimester": trimester,
-            "hpl": data.get("hpl"),
+            "hpl": format_ddmmyyyy(data.get("hpl")),
 
             # 🔥 WAJIB ADA (BIAR MINGGU KE MUNCUL DI FRONTEND)
             "hpht": hpht,
@@ -422,3 +428,73 @@ def end_pregnancy():
     except Exception as e:
         print(e)
         return jsonify({"message": "Gagal mengakhiri"}), 500
+    
+@jwt_required()
+def pregnancy_history_with_detail():
+    try:
+        user_id = get_jwt_identity()
+
+        # ======================
+        # AMBIL DATA KEHAMILAN
+        # ======================
+        data = list(
+            DataKehamilan.db["data_kehamilan"]
+            .find({"user_id": ObjectId(user_id)})
+            .sort("kehamilan_ke", -1)
+        )
+
+        result = []
+
+        for d in data:
+
+            kehamilan_id = str(d["_id"])
+
+            # ======================
+            # AMBIL RIWAYAT BERAT BADAN
+            # ======================
+            bb_data = list(
+                DataKehamilan.db["berat_badan"].find({
+                    "user_id": ObjectId(user_id),
+                    "kehamilan_id": ObjectId(kehamilan_id)
+                }).sort("tanggal", -1)
+            )
+
+            riwayat_bb = []
+
+            for b in bb_data:
+                riwayat_bb.append({
+                    "id": str(b["_id"]),
+                    "berat_badan": float(b.get("berat_badan") or 0),
+                    "tanggal": b["tanggal"].strftime("%d-%m-%Y") if b.get("tanggal") else None
+                })
+
+            # ======================
+            # BUILD RESPONSE
+            # ======================
+            result.append({
+                "id": kehamilan_id,
+                "kehamilan_ke": d.get("kehamilan_ke", 0),
+                "hpht": d.get("hpht"),
+
+                # 🔥 HPL FORMAT DD-MM-YYYY
+                "hpl": format_ddmmyyyy(d.get("hpl")),
+
+                "status": d.get("status", "active"),
+                "start_date": d.get("start_date").isoformat() if d.get("start_date") else None,
+                "end_date": d.get("end_date").isoformat() if d.get("end_date") else None,
+
+                # 🔥 RIWAYAT BERAT BADAN
+                "riwayat_bb": riwayat_bb
+            })
+
+        return jsonify({
+            "status": "success",
+            "data": result
+        }), 200
+
+    except Exception as e:
+        print("ERROR pregnancy_history_with_detail:", e)
+        return jsonify({
+            "status": "error",
+            "message": "Gagal mengambil data"
+        }), 500

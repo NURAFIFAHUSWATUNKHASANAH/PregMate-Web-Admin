@@ -273,3 +273,137 @@ def cek_latihan_harian(db):
 
             if pendamping:
                 kirim_notif_pengingat_harian(pendamping)
+
+from zoneinfo import ZoneInfo
+from datetime import datetime
+from bson import ObjectId
+from firebase_admin import messaging
+
+def cek_notif_kalkulator(db):
+
+    kalkulator = db["kalkulator_bersalin"]
+    users = db["users"]
+    informasi = db["informasi"]
+
+    now = datetime.now(ZoneInfo("Asia/Jakarta"))
+
+    for data in kalkulator.find():
+
+        try:
+            user_id = data["user_id"]
+            created_at = data.get("created_at")
+
+            if not created_at:
+                continue
+
+            # 🔥 Samakan timezone
+            created_at = created_at.replace(tzinfo=ZoneInfo("Asia/Jakarta"))
+
+            selisih = now - created_at
+            hari_ke = max(selisih.days, 0)
+
+            metode = data.get("metode_nabung", "bulanan")
+
+            total_biaya = data.get("total_biaya", 0)
+            total_masuk = data.get("total_masuk", 0)
+            total_keluar = data.get("total_keluar", 0)
+
+            saldo = total_masuk - total_keluar
+            sisa = max(total_biaya - saldo, 0)
+
+            # 🔥 Ambil user
+            if isinstance(user_id, str):
+                if not ObjectId.is_valid(user_id):
+                    continue
+                user_id = ObjectId(user_id)
+
+            user = users.find_one({"_id": user_id})
+            if not user:
+                continue
+
+            token = user.get("fcmToken") or user.get("tokenFCM") or user.get("token")
+            if not token:
+                continue
+
+            def rupiah(x):
+                return f"Rp {int(x):,}".replace(",", ".")
+
+            title = "Reminder Tabungan 💰"
+            body = None
+            flag = None
+
+            # =============================
+            # BULANAN
+            # =============================
+            if metode == "bulanan":
+
+                if hari_ke == 10 and not data.get("notif_h10"):
+                    body = "Yuk mulai nabung bulan ini 💡"
+                    flag = "notif_h10"
+
+                elif hari_ke == 20 and not data.get("notif_h20"):
+                    body = f"Kamu masih kurang {rupiah(sisa)} dari target bulan ini 😬"
+                    flag = "notif_h20"
+
+                elif hari_ke == 30 and not data.get("notif_h30"):
+                    body = f"Hari terakhir! Kurang {rupiah(sisa)} lagi 🎯"
+                    flag = "notif_h30"
+
+            # =============================
+            # MINGGUAN
+            # =============================
+            else:
+                hari_dalam_minggu = hari_ke % 7
+
+                if hari_dalam_minggu == 3 and not data.get("notif_h3"):
+                    body = "Yuk mulai nabung minggu ini 💡"
+                    flag = "notif_h3"
+
+                elif hari_dalam_minggu == 5 and not data.get("notif_h5"):
+                    body = f"Kamu masih kurang {rupiah(sisa)} minggu ini 😬"
+                    flag = "notif_h5"
+
+                elif hari_dalam_minggu == 6 and not data.get("notif_h7"):
+                    body = f"Hari terakhir minggu ini! Kurang {rupiah(sisa)} 🎯"
+                    flag = "notif_h7"
+
+            # =============================
+            # 🔥 KIRIM + SIMPAN
+            # =============================
+            if body and flag:
+
+                # 🔥 Kirim FCM
+                messaging.send(
+                    messaging.Message(
+                        notification=messaging.Notification(
+                            title=title,
+                            body=body
+                        ),
+                        token=token
+                    )
+                )
+
+                print(f"✅ Notif terkirim: {user_id} | hari {hari_ke}")
+
+                # 🔥 SIMPAN KE KOLEKSI INFORMASI (AMAN)
+                if informasi is not None:
+                    informasi.insert_one({
+                        "user_id": str(user_id),
+                        "kehamilan_id": ObjectId(data.get("kehamilan_id"))
+                            if data.get("kehamilan_id") and ObjectId.is_valid(str(data.get("kehamilan_id")))
+                            else None,
+                        "tipe": "kalkulator",
+                        "label": "tabungan",
+                        "title": title,
+                        "pesan": body,
+                        "tanggal": datetime.utcnow()
+                    })
+
+                # 🔥 Set flag agar tidak double kirim
+                kalkulator.update_one(
+                    {"_id": data["_id"]},
+                    {"$set": {flag: True}}
+                )
+
+        except Exception as e:
+            print("❌ ERROR NOTIF KALKULATOR:", e)

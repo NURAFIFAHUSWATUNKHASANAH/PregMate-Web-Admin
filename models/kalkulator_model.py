@@ -6,6 +6,7 @@ def now_wib():
     tz = pytz.timezone("Asia/Jakarta")
     return datetime.now(tz)
 
+
 class KalkulatorModel:
     collection = None
 
@@ -13,19 +14,43 @@ class KalkulatorModel:
     def set_db(db):
         KalkulatorModel.collection = db["kalkulator_bersalin"]
 
-    # ================= SIMPAN / UPDATE =================
+    # ================= SAFE OBJECT ID =================
+    @staticmethod
+    def to_object_id(value):
+        try:
+            return ObjectId(value)
+        except:
+            raise Exception("ID tidak valid")
+
+    # ================= SAVE (SHARED) =================
     @staticmethod
     def save(user_id, data):
+        kehamilan_id = data.get("kehamilan_id")
+
+        if not kehamilan_id:
+            raise Exception("kehamilan_id wajib")
+
+        kehamilan_obj = KalkulatorModel.to_object_id(kehamilan_id)
+        user_obj = KalkulatorModel.to_object_id(user_id)
+
+        # 🔥 hanya berdasarkan kehamilan_id (SHARED)
         existing = KalkulatorModel.collection.find_one({
-            "user_id": ObjectId(user_id)
+            "kehamilan_id": kehamilan_obj
         })
 
         payload = {
+            "kehamilan_id": kehamilan_obj,
+
+            # 🔥 optional (si pembuat pertama)
+            "owner_id": user_obj,
+
             "hpht": data.get("hpht"),
             "hpl": data.get("hpl"),
             "metode": data.get("metode"),
+            "metode_nabung": data.get("metode_nabung", "bulanan"),
             "total_biaya": float(data.get("total_biaya", 0)),
             "pakai_bpjs": data.get("pakai_bpjs", False),
+
             "updated_at": datetime.utcnow()
         }
 
@@ -34,23 +59,34 @@ class KalkulatorModel:
                 {"_id": existing["_id"]},
                 {"$set": payload}
             )
+            return str(existing["_id"])
         else:
-            payload["user_id"] = ObjectId(user_id)
             payload["created_at"] = datetime.utcnow()
-            KalkulatorModel.collection.insert_one(payload)
+            payload["total_masuk"] = 0
+            payload["total_keluar"] = 0
+            payload["riwayat"] = []
 
-    # ================= AMBIL DATA =================
+            result = KalkulatorModel.collection.insert_one(payload)
+            return str(result.inserted_id)
+
+    # ================= GET (SHARED) =================
     @staticmethod
-    def get(user_id):
-        return KalkulatorModel.collection.find_one({
-            "user_id": ObjectId(user_id)
-        })
+    def get(kehamilan_id):
+        if not kehamilan_id:
+            return None
+
+        try:
+            return KalkulatorModel.collection.find_one({
+                "kehamilan_id": ObjectId(kehamilan_id)
+            })
+        except:
+            return None
 
     # ================= TABUNG =================
     @staticmethod
-    def add_income(user_id, jumlah):
+    def add_income(kehamilan_id, jumlah):
         KalkulatorModel.collection.update_one(
-            {"user_id": ObjectId(user_id)},
+            {"kehamilan_id": ObjectId(kehamilan_id)},
             {
                 "$inc": {"total_masuk": jumlah},
                 "$push": {
@@ -65,16 +101,16 @@ class KalkulatorModel:
 
     # ================= PENGELUARAN =================
     @staticmethod
-    def add_expense(user_id, jumlah, keterangan):
+    def add_expense(kehamilan_id, jumlah, keterangan):
         KalkulatorModel.collection.update_one(
-            {"user_id": ObjectId(user_id)},
+            {"kehamilan_id": ObjectId(kehamilan_id)},
             {
                 "$inc": {"total_keluar": jumlah},
                 "$push": {
                     "riwayat": {
                         "tipe": "keluar",
                         "jumlah": jumlah,
-                        "keterangan": keterangan,  # 🔥 TAMBAHAN
+                        "keterangan": keterangan,
                         "tanggal": now_wib().strftime("%d-%m-%Y %H:%M")
                     }
                 }
