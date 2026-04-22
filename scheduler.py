@@ -38,7 +38,7 @@ def send_push_notification(token, title, body):
 
 def check_schedule(db):
     now = datetime.now()
-    schedules = db.schedules.find({"dikirim": {"$ne": True}})  # hanya yang belum dikirim
+    schedules = db.schedules.find({"dikirim": {"$ne": True}})
 
     for schedule in schedules:
         try:
@@ -47,22 +47,34 @@ def check_schedule(db):
             pesan = schedule["pesan"]
             user_id = schedule["user_id"]
 
-            # Gabungkan tanggal dan jam menjadi datetime
             waktu_jadwal = datetime.strptime(f"{tanggal} {jam}", "%Y-%m-%d %H:%M")
 
-            # Jika waktu sekarang >= jadwal dan belum dikirim
             if now >= waktu_jadwal:
-                user = db.users.find_one({"_id": ObjectId(user_id)})
-                if user and "token" in user:
-                    token = user["token"]
-                    send_push_notification(token, "Pengingat Terapi", pesan)
 
-                    # Update agar tidak dikirim dua kali
-                    db.schedules.update_one({"_id": schedule["_id"]}, {"$set": {"dikirim": True}})
-                else:
-                    print(f"⚠️ Token tidak ditemukan untuk user {user_id}")
+                user = db.users.find_one({"_id": ObjectId(user_id)})
+
+                if not user:
+                    print(f"❌ User tidak ditemukan: {user_id}")
+                    continue
+
+                token = get_token(user)
+
+                if not token:
+                    print(f"⚠️ Token kosong untuk user {user_id}")
+                    continue
+
+                send_push_notification(token, "Pengingat", pesan)
+
+                db.schedules.update_one(
+                    {"_id": schedule["_id"]},
+                    {"$set": {"dikirim": True}}
+                )
+
         except Exception as e:
             print(f"❌ Error memproses jadwal: {e}")
+
+def get_token(user):
+    return user.get("fcmToken") or user.get("tokenFCM") or user.get("token")
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
