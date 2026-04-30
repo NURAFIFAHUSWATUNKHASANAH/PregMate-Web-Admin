@@ -1,54 +1,59 @@
 {% extends 'layouts/layout.html' %}
 
+{% block title %}Kelola User | AdminPanel{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<!-- Memastikan library icon tersedia -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
 <div class="user-container">
     
-    <!-- HEADER -->
+    <!-- HEADER SECTION -->
     <div class="user-header-wrapper">
+        <!-- Judul dan Subtitle -->
         <div class="user-title-group">
             <i class="fas fa-users"></i>
             <div>
                 <h2>Kelola User</h2>
                 <p class="subtitle">
-                    Manajemen akun pengguna sistem
+                    Manajemen akun pengguna sistem PregMate
                 </p>
             </div>
         </div>
 
-        <!-- SEARCH -->
-        <form class="search-form" method="GET">
+        <!-- Form Pencarian -->
+        <form class="search-form" method="GET" action="{{ url_for('admin_user.index') }}">
             <input 
                 type="text" 
                 name="search"
                 class="search-input" 
-                placeholder="Cari user..." 
+                placeholder="Cari nama atau email..." 
                 value="{{ request.args.get('search','') }}"
+                autocomplete="off"
             >
             <button type="submit" class="btn-search">
                 <i class="fas fa-search"></i>
             </button>
         </form>
 
-        <!-- BUTTON TAMBAH -->
-        <a href="{{ url_for('admin_user.create') }}" class="btn-add-modern">
+        <!-- Tombol Tambah User -->
+        <!-- <a href="{{ url_for('admin_user.create') }}" class="btn-add-modern">
             <i class="fas fa-plus"></i>
             <span>Tambah User</span>
-        </a>
+        </a> -->
     </div>
 
-    <!-- TABLE -->
+    <!-- TABLE SECTION -->
     <div class="table-responsive">
         <table class="user-table">
             <thead>
                 <tr>
-                    <th>Nama</th>
-                    <th>Email</th>
-                    <th>Role</th>
+                    <th>Nama Pengguna</th>
+                    <th>Alamat Email</th>
+                    <th>Peran / Role</th>
                     <th style="text-align:center;">Aksi</th>
                 </tr>
             </thead>
@@ -56,9 +61,10 @@
                 {% if users %}
                     {% for user in users %}
                     <tr>
-                        <td>{{ user.nama }}</td>
-                        <td>{{ user.email }}</td>
-                        <td>
+                        <!-- data-label digunakan oleh CSS untuk tampilan mobile -->
+                        <td data-label="Nama">{{ user.nama }}</td>
+                        <td data-label="Email">{{ user.email }}</td>
+                        <td data-label="Role">
                             <span class="badge 
                                 {% if user.role == 'ibu' %}badge-ibu
                                 {% else %}badge-pendamping
@@ -66,34 +72,39 @@
                                 {{ user.role }}
                             </span>
                         </td>
-                        <td>
-                            <div class="user-action-buttons">
-                                
-                                <!-- EDIT -->
-                                <a href="{{ url_for('admin_user.edit', id=user._id) }}" 
-                                   class="btn-action btn-edit"
-                                   title="Edit">
-                                    <i class="fas fa-pen-to-square"></i>
-                                </a>
+<td data-label="Aksi">
+    <div class="user-action-buttons">
+        
+        <!-- Tombol Edit -->
+        <a href="{{ url_for('admin_user.edit', id=user._id) }}" 
+           class="btn-action btn-edit"
+           title="Edit Data">
+            <i class="fas fa-pen-to-square"></i>
+        </a>
 
-                                <!-- DELETE (PAKAI SWEETALERT) -->
-                                <a href="#"
-                                   class="btn-action btn-delete btn-hapus"
-                                   data-url="{{ url_for('admin_user.delete', id=user._id) }}"
-                                   data-nama="{{ user.nama }}"
-                                   title="Hapus">
-                                    <i class="fas fa-trash"></i>
-                                </a>
+        <!-- Tombol Delete (Ubah dari <button> ke <a> agar style seragam) -->
+        <a href="#"
+           class="btn-action btn-delete btn-hapus"
+           data-url="{{ url_for('admin_user.delete', id=user._id) }}"
+           data-nama="{{ user.nama }}"
+           title="Hapus User">
+            <i class="fas fa-trash"></i>
+        </a>
 
-                            </div>
-                        </td>
+    </div>
+</td>
                     </tr>
                     {% endfor %}
                 {% else %}
+                    <!-- Tampilan Jika Data Kosong -->
                     <tr>
                         <td colspan="4" class="empty-state">
-                            <i class="fas fa-users-slash fa-2x"></i>
-                            <p>Data user tidak ditemukan</p>
+                            <div class="empty-content">
+                                <i class="fas fa-users-slash fa-3x"></i>
+                                <h3>Data Tidak Ditemukan</h3>
+                                <p>Maaf, tidak ada data user yang sesuai dengan pencarian Anda.</p>
+                                <a href="{{ url_for('admin_user.index') }}" class="btn-refresh">Muat Ulang</a>
+                            </div>
                         </td>
                     </tr>
                 {% endif %}
@@ -105,5 +116,13 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Script SweetAlert2 sudah dipanggil di layout.html, di sini hanya memanggil logika custom alert -->
 <script src="{{ url_for('static', filename='js/allert.js') }}"></script>
+
+<script>
+    // Logika tambahan jika diperlukan untuk handle interaksi tabel
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Halaman Kelola User siap.");
+    });
+</script>
 {% endblock %}

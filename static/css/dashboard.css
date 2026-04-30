@@ -164,3 +164,232 @@
 }
 
 .btn-primary:hover { background: var(--primary-hover); }
+
+.icon-pink {
+  background: rgba(255, 105, 180, 0.15);
+  color: hotpink;
+}
+/* --- RESPONSIVE QUERIES --- */
+
+/* Layar Tablet (Max 992px) */
+@media (max-width: 992px) {
+    .main-grid {
+        grid-template-columns: 1fr; /* Stack kolom jadi satu */
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+/* Layar HP (Max 768px) */
+@media (max-width: 768px) {
+    .dashboard-wrapper {
+        padding: 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr; /* Stat card satu-satu */
+    }
+
+    /* Transformasi Tabel menjadi Kartu */
+    .modern-table thead {
+        display: none; /* Sembunyikan header tabel */
+    }
+
+    .modern-table, .modern-table tbody, .modern-table tr, .modern-table td {
+        display: block;
+        width: 100%;
+    }
+
+.modern-table tr {
+        margin-bottom: 1.5rem; /* Tambah jarak antar kartu */
+        border: 1px solid var(--border);
+        border-radius: 16px; /* Lebih aesthetic */
+        padding: 0.5rem;
+        background: #ffffff;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    .modern-table td {
+        display: flex; /* Gunakan flexbox untuk memisahkan label dan isi */
+        justify-content: space-between; /* Label di kiri, Isi di kanan */
+        align-items: center;
+        text-align: right;
+        padding: 12px 10px;
+        position: relative;
+        border-bottom: 1px solid #f1f5f9;
+        min-height: 45px; /* Pastikan ada tinggi minimal */
+    }
+
+    .modern-table td:last-child {
+        border-bottom: none;
+    }
+
+    /* Perbaikan Label (Bagian yang bertabrakan) */
+    .modern-table td::before {
+        content: attr(data-label);
+        position: static; /* Ubah dari absolute ke static */
+        font-weight: 700;
+        color: var(--text-muted);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        margin-right: 15px; /* Beri jarak dengan konten */
+        text-align: left;
+        flex-shrink: 0; /* Jangan biarkan label mengecil */
+    }
+
+    /* Memastikan konten (span/div) mengambil sisa ruang */
+    .table-user {
+        justify-content: flex-end;
+        width: auto;
+    }
+
+    /* Khusus untuk teks aktivitas yang panjang agar tidak berantakan */
+    [data-label="Aktivitas"], [data-label="Aktivitas"] {
+        flex-direction: row; 
+        word-break: break-word;
+    }
+}
+
+/* Penyesuaian tombol di layar kecil */
+@media (max-width: 480px) {
+    .dashboard-header h1 {
+        font-size: 1.4rem;
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+}
+
+/* About App Modern Style */
+.about-app-card {
+    background: linear-gradient(145deg, #ffffff, #f9fafb);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header-modern {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.brand-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-title i {
+    color: var(--primary);
+    font-size: 1.4rem;
+}
+
+.brand-title h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+.status-pill {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.app-motto {
+    font-size: 0.95rem;
+    color: var(--text-main);
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.feature-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.pill {
+    background: #f1f5f9;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.app-description-box {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px dashed var(--border);
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+}
+
+/* Developer Footer Section */
+.dev-footer {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dev-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dev-avatar {
+    width: 35px;
+    height: 35px;
+    background: var(--primary);
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.dev-meta {
+    display: flex;
+    flex-direction: column;
+}
+
+.dev-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+}
+
+.dev-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.dev-year {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    opacity: 0.5;
+}

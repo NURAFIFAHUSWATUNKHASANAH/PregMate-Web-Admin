@@ -64,4 +64,45 @@
 </aside>
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/allert.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.querySelector('.menu-toggle');
+    const sidebar = document.querySelector('.sidebar');
+    const menuIcon = menuToggle.querySelector('i');
+    const navLinks = document.querySelectorAll('.sidebar-link');
+
+    // 1. Fungsi Toggle Sidebar
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle('show');
+        
+        // Animasi pergantian icon
+        if (sidebar.classList.contains('show')) {
+            menuIcon.classList.replace('fa-bars', 'fa-times');
+        } else {
+            menuIcon.classList.replace('fa-times', 'fa-bars');
+        }
+    });
+
+    // 2. Tutup sidebar jika klik di luar area sidebar
+    document.addEventListener('click', (e) => {
+        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+            if (sidebar.classList.contains('show')) {
+                sidebar.classList.remove('show');
+                menuIcon.classList.replace('fa-times', 'fa-bars');
+            }
+        }
+    });
+
+    // 3. Tutup sidebar setelah mengklik salah satu menu (penting untuk mobile)
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            if (window.innerWidth <= 992) {
+                sidebar.classList.remove('show');
+                menuIcon.classList.replace('fa-times', 'fa-bars');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

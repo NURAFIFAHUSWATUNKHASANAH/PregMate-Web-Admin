@@ -1,5 +1,7 @@
 {% extends 'layouts/layout.html' %}
 
+{% block title %}Kelola Artikel | AdminPanel{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/artikel.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -8,15 +10,17 @@
 {% block content %}
 <div class="artikel-container">
     
+    <!-- HEADER SECTION -->
     <div class="artikel-header-wrapper">
         <div class="artikel-title-group">
             <i class="fas fa-newspaper"></i>
             <div>
                 <h2>Kelola Artikel</h2>
-                <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">Publikasi informasi kesehatan & edukasi</p>
+                <p class="subtitle">Publikasi informasi kesehatan & edukasi</p>
             </div>
         </div>
 
+        <!-- Form Pencarian -->
         <form class="search-form" method="get" action="{{ url_for('artikel_bp.index') }}">
             <input type="text" name="search" class="search-input" placeholder="Cari judul artikel..." value="{{ search_query or '' }}">
             <button type="submit" class="btn-search">
@@ -24,17 +28,19 @@
             </button>
         </form>
 
+        <!-- Tombol Tambah -->
         <a href="{{ url_for('artikel_bp.create') }}" class="btn-add-modern">
             <i class="fas fa-plus"></i>
             <span>Tambah Artikel</span>
         </a>
     </div>
 
+    <!-- TABLE SECTION -->
     <div class="table-responsive">
         <table class="artikel-table">
             <thead>
                 <tr>
-                    <th width="100">Gambar</th>
+                    <th width="120">Gambar</th>
                     <th>Judul Artikel</th>
                     <th>Cuplikan Konten</th>
                     <th width="150" style="text-align: center;">Aksi</th>
@@ -44,34 +50,44 @@
                 {% if articles %}
                     {% for artikel in articles %}
                     <tr>
-                        <td>
+                        <td data-label="Gambar">
                             <img src="{{ artikel.imageUrl }}" class="img-thumbnail-artikel" alt="thumbnail">
                         </td>
-                        <td>
-                            <strong style="color: var(--text-main);">{{ artikel.title }}</strong>
+                        <td data-label="Judul">
+                            <strong class="artikel-title-text">{{ artikel.title }}</strong>
                         </td>
-                        <td style="color: var(--text-muted); line-height: 1.5;">
+                        <td data-label="Konten" class="artikel-excerpt">
                             {{ artikel.content[:85] }}...
                         </td>
-                        <td>
-                            <div class="terapi-action-buttons"> <a href="{{ url_for('artikel_bp.edit', id=artikel._id) }}" class="btn-action btn-edit" title="Edit">
-                                    <i class="fas fa-pen-to-square"></i>
-                                </a>
-                                <a href="#" class="btn-action btn-delete btn-hapus" 
-                                   data-url="{{ url_for('artikel_bp.delete', id=artikel._id) }}"
-                                   data-nama="{{ artikel.title }}"
-                                   title="Hapus">
-                                    <i class="fas fa-trash-can"></i>
-                                </a>
-                            </div>
+<td data-label="Aksi">
+    <div class="artikel-action-buttons"> 
+        <!-- Tombol Edit -->
+        <a href="{{ url_for('artikel_bp.edit', id=artikel._id) }}" 
+           class="btn-action btn-edit" 
+           title="Edit">
+            <i class="fas fa-pen-to-square"></i>
+        </a>
+        
+        <!-- Tombol Delete (Disamakan dengan User & Tas Bersalin) -->
+        <a href="#" 
+           class="btn-action btn-delete btn-hapus" 
+           data-url="{{ url_for('artikel_bp.delete', id=artikel._id) }}"
+           data-nama="{{ artikel.title }}"
+           title="Hapus">
+            <i class="fas fa-trash"></i>
+        </a>
+    </div>
+</td>
                         </td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="4" style="text-align:center; padding: 3rem; color: var(--text-muted);">
-                            <i class="fas fa-folder-open fa-2x" style="display:block; margin-bottom:10px; opacity:0.3;"></i>
-                            Data artikel tidak ditemukan
+                        <td colspan="4" class="empty-state">
+                            <div class="empty-content">
+                                <i class="fas fa-folder-open fa-3x"></i>
+                                <p>Data artikel tidak ditemukan</p>
+                            </div>
                         </td>
                     </tr>
                 {% endif %}
@@ -79,14 +95,15 @@
         </table>
     </div>
 
+    <!-- PAGINATION -->
     <div class="pagination-wrapper">
         <div class="pagination-info">
-            Menampilkan Halaman <strong>{{ page }}</strong>
+            Halaman <strong>{{ page }}</strong>
         </div>
         <div class="pagination-buttons">
             {% if page > 1 %}
                 <a href="{{ url_for('artikel_bp.index', page=page-1, search=search_query) }}" class="btn-page">
-                    <i class="fas fa-chevron-left"></i> Prev
+                    <i class="fas fa-chevron-left"></i>
                 </a>
             {% endif %}
             
@@ -94,14 +111,10 @@
 
             {% if has_next %}
                 <a href="{{ url_for('artikel_bp.index', page=page+1, search=search_query) }}" class="btn-page">
-                    Next <i class="fas fa-chevron-right"></i>
+                    <i class="fas fa-chevron-right"></i>
                 </a>
             {% endif %}
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
 {% endblock %}

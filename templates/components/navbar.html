@@ -1,30 +1,24 @@
+<!-- Pastikan FontAwesome & Google Fonts Inter sudah terpasang di <head> -->
 <nav class="navbar">
   <div class="nav-container">
-    <div class="nav-brand">
-      <div class="logo-icon">
-        <i class="fas fa-bolt"></i>
-      </div>
-      <div class="brand-text">
-        Admin<span>Panel</span>
+    
+    <!-- LEFT SIDE: HAMBURGER & BRAND -->
+    <div class="nav-left">
+      <button class="menu-toggle" aria-label="Toggle Menu">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <div class="nav-brand">
+        <div class="logo-icon">
+          <i class="fas fa-bolt"></i>
+        </div>
+        <div class="brand-text">
+          Admin<span>Panel</span>
+        </div>
       </div>
     </div>
 
-    <div class="nav-menu">
-      <a href="#" class="nav-item active">
-        <i class="fas fa-chart-pie"></i> 
-        <span>Dashboard</span>
-        <div class="active-indicator"></div>
-      </a>
-      <a href="#" class="nav-item">
-        <i class="fas fa-file-alt"></i> 
-        <span>Laporan</span>
-      </a>
-      <a href="#" class="nav-item">
-        <i class="fas fa-users"></i> 
-        <span>Pengguna</span>
-      </a>
-    </div>
-
+    <!-- RIGHT SIDE: ACTIONS & PROFILE -->
     <div class="nav-actions">
       <div class="action-buttons">
         <button class="btn-icon" aria-label="Search">

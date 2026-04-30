@@ -72,19 +72,18 @@
                 </div>
 
                 <!-- ACTION -->
-                <div class="form-actions">
-                    
-                    <a href="{{ url_for('admin_user.index') }}" class="btn-cancel">
-                        <i class="fas fa-arrow-left"></i>
-                        Kembali
-                    </a>
+<div class="form-actions">
+    <!-- Tombol Update (Kanan) -->
+    <button type="submit" class="btn-submit">
+        Update
+    </button>
+    <!-- Tombol Kembali (Kiri) -->
+    <a href="{{ url_for('admin_user.index') }}" class="btn-cancel">
+        Kembali
+    </a>
 
-                    <button type="submit" class="btn-submit">
-                        <i class="fas fa-save"></i>
-                        Update
-                    </button>
 
-                </div>
+</div>
 
             </form>
 

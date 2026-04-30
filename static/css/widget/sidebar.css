@@ -118,3 +118,37 @@
   color: var(--text-muted);
   font-weight: 400;
 }
+
+/* RESPONSIVE SIDEBAR */
+/* Update pada media query 992px atau 768px */
+@media (max-width: 992px) {
+  .sidebar {
+    position: fixed;
+    top: 72px; /* Sesuai tinggi navbar */
+    left: -280px; 
+    height: calc(100vh - 72px);
+    z-index: 1100; /* Pastikan di atas elemen lain */
+    width: 260px;
+    background: white;
+    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Transisi lebih halus */
+    visibility: hidden; /* Tambahan agar tidak bisa di-tab saat sembunyi */
+  }
+
+  .sidebar.show {
+    left: 0;
+    visibility: visible;
+  }
+}
+
+/* Memastikan tombol hamburger selalu terlihat di mobile */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: flex !important; /* Gunakan flex untuk centering icon */
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+  }
+}

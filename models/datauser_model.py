@@ -102,5 +102,3 @@ class User:
     @classmethod
     def update_token(cls, user_id, token):
         return cls.db.users.update_one({'_id': ObjectId(user_id)}, {'$set': {'tokenFCM': token}})
-
-

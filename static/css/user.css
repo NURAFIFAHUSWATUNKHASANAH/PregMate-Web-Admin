@@ -1,7 +1,8 @@
-/* =========================
-   USER PAGE (SCOPED)
-   ========================= */
+/* ============================================================
+   USER.CSS - Scoped for User Management Module
+   ============================================================ */
 
+/* --- 1. Container Utama --- */
 .user-container {
     background: var(--white);
     padding: 2rem;
@@ -10,14 +11,13 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
-/* ===== HEADER ===== */
+/* --- 2. Header & Action Bar --- */
 .user-header-wrapper {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
     gap: 1.5rem;
-    flex-wrap: wrap;
 }
 
 .user-title-group {
@@ -51,16 +51,16 @@
     margin: 0;
 }
 
-/* ===== SEARCH (SCOPED BIAR GAK TABRAKAN) ===== */
+/* Search Form */
 .user-container .search-form {
     display: flex;
     gap: 8px;
-    flex-grow: 1;
+    flex: 1;
     max-width: 400px;
 }
 
 .user-container .search-input {
-    flex-grow: 1;
+    flex: 1;
     padding: 10px 16px;
     border-radius: 10px;
     border: 1px solid var(--border);
@@ -83,29 +83,32 @@
     padding: 0 15px;
     border-radius: 10px;
     cursor: pointer;
+    transition: opacity 0.2s;
 }
 
-/* ===== BUTTON TAMBAH ===== */
+/* Button Tambah User */
 .btn-add-modern {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     background: var(--primary);
-    color: white;
-    padding: 10px 16px;
+    color: white !important;
+    padding: 10px 18px;
     border-radius: 10px;
     text-decoration: none;
     font-size: 0.85rem;
     font-weight: 600;
-    transition: 0.2s;
+    transition: transform 0.2s, opacity 0.2s;
 }
 
 .btn-add-modern:hover {
     opacity: 0.9;
+    transform: translateY(-1px);
 }
 
-/* ===== TABLE ===== */
-.user-container .table-responsive {
+/* --- 3. Tabel User --- */
+.table-responsive {
+    width: 100%;
     border-radius: 12px;
     border: 1px solid var(--border);
     overflow: hidden;
@@ -134,134 +137,82 @@
     color: var(--text-main);
 }
 
-/* ===== BADGE ROLE ===== */
+.user-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badges */
 .badge {
     display: inline-block;
-    padding: 6px 10px;
+    padding: 4px 12px;
     font-size: 0.75rem;
-    border-radius: 999px;
+    border-radius: 99px;
     font-weight: 600;
     text-transform: capitalize;
 }
 
-/* IBU */
-.badge-ibu {
-    background: #ecfdf5;
-    color: #059669;
-}
+.badge-ibu { background: #ecfdf5; color: #059669; }
+.badge-pendamping { background: #eff6ff; color: #2563eb; }
 
-/* PENDAMPING */
-.badge-pendamping {
-    background: #eff6ff;
-    color: #2563eb;
-}
-
-/* ===== ACTION BUTTONS ===== */
+/* Actions */
 .user-action-buttons {
     display: flex;
-    justify-content: center;
-    gap: 10px;
+    gap: 8px;
 }
 
-.user-action-buttons .btn-action {
-    width: 36px;
-    height: 36px;
+.btn-action {
+    width: 34px;
+    height: 34px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 10px;
-    text-decoration: none;
+    border-radius: 8px;
     transition: all 0.2s;
-    font-size: 1rem;
 }
 
-/* EDIT */
-.user-action-buttons .btn-edit {
-    background: #eff6ff;
-    color: #3b82f6;
-}
+.btn-edit { background: #eff6ff; color: #3b82f6; }
+.btn-edit:hover { background: #3b82f6; color: white; }
 
-.user-action-buttons .btn-edit:hover {
-    background: #3b82f6;
-    color: #fff;
-}
+.btn-delete { background: #fff1f2; color: #e11d48; }
+.btn-delete:hover { background: #e11d48; color: white; }
 
-/* DELETE */
-.user-action-buttons .btn-delete {
-    background: #fff1f2;
-    color: #e11d48;
-}
-
-.user-action-buttons .btn-delete:hover {
-    background: #e11d48;
-    color: #fff;
-}
-
-/* ===== EMPTY STATE ===== */
-.empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: var(--text-muted);
-}
-
-.empty-state i {
-    display: block;
-    margin-bottom: 10px;
-    opacity: 0.3;
-}
-
-.empty-state p {
-    margin: 0;
-    font-size: 0.9rem;
-}
-
-/* =========================
-   USER FORM (EDIT / CREATE)
-   ========================= */
-
-/* Container utama */
+/* --- 4. Form Styling (Create/Edit) --- */
 .form-container {
-    padding: 2rem;
+    padding: 1rem;
 }
 
-/* Wrapper biar konsisten lebar */
 .form-wrapper {
-    max-width: 900px;
+    max-width: 1000px; /* Diperkecil agar lebih fokus di desktop & konsisten di mobile */
     margin: 0 auto;
 }
 
-/* Header */
+/* Header Form */
 .form-header {
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
 }
 
 .form-title-group {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
 }
 
 .form-title-group i {
-    background: var(--primary-soft);
-    color: var(--primary);
-    width: 45px;
-    height: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-size: 1.2rem;
+    font-size: 2rem;
+    color: var(--text-main);
 }
 
 .form-title-group h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: var(--text-main);
+    font-size: 1.5rem;
+    font-weight: 800;
     margin: 0;
+    color: var(--text-main);
 }
 
 .form-title-group .subtitle {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--text-muted);
     margin: 0;
 }
@@ -270,130 +221,238 @@
 .form-card {
     background: var(--white);
     padding: 2rem;
-    border-radius: 20px;
+    border-radius: 24px;
     border: 1px solid var(--border);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
 }
 
-/* Form Group */
-.form-card .form-group {
-    margin-bottom: 1.4rem;
+.form-group {
+    margin-bottom: 1.5rem;
 }
 
-.form-card label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-main);
-    margin-bottom: 6px;
+.form-group label {
     display: block;
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text-main);
 }
 
-/* Input dengan icon */
 .input-icon {
     position: relative;
 }
 
 .input-icon i {
     position: absolute;
-    left: 14px;
+    left: 16px;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-muted);
-    font-size: 0.9rem;
+    pointer-events: none;
 }
 
-/* Input control scoped */
-/* FIX OVERFLOW INPUT */
-.form-card .form-control {
+.form-control {
     width: 100%;
-    padding: 12px 14px 12px 40px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
+    padding: 14px 16px 14px 46px; /* Padding kiri lebih besar untuk icon */
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
     background: #f8fafc;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-    
-    box-sizing: border-box; /* 🔥 INI KUNCI */
+    font-size: 0.95rem;
+    color: var(--text-main);
+    transition: all 0.3s ease;
 }
 
-/* Biar icon gak dorong layout */
-.input-icon {
-    position: relative;
-    width: 100%; /* 🔥 TAMBAHAN */
-}
-
-.form-card .form-control:focus {
+.form-control:focus {
     outline: none;
     border-color: var(--primary);
-    background: var(--white);
-    box-shadow: 0 0 0 3px var(--primary-soft);
+    background: white;
+    box-shadow: 0 0 0 4px var(--primary-soft);
 }
 
-/* Select biar rapi */
-.form-card select.form-control {
+/* Actions Buttons */
+.form-actions {
+    display: grid; /* Gunakan Grid untuk kontrol kolom yang lebih baik */
+    grid-template-columns: 1fr 1fr; /* Membagi menjadi 2 kolom sama besar */
+    gap: 12px; /* Jarak antar tombol */
+    margin-top: 2.5rem;
+}
+
+.btn-submit, .btn-cancel {
+    width: 100%; /* Pastikan tombol mengisi seluruh ruang kolom grid */
+    height: 48px; /* Tinggi tombol agar nyaman ditekan (mobile-friendly) */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center; /* Teks dan icon di tengah */
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    text-decoration: none;
     cursor: pointer;
 }
 
-/* Action Buttons */
-.form-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 2rem;
-    gap: 10px;
-    flex-wrap: wrap;
+/* Tombol Update (Biru Gelap Modern) */
+.btn-submit {
+    background: #11284d; /* Mengikuti kode biru Anda sebelumnya */
+    color: white !important;
+    border: none;
+    box-shadow: 0 4px 6px -1px rgba(17, 40, 77, 0.2);
 }
 
-/* Cancel */
+.btn-submit:hover {
+    background: #1e3a6d;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px -3px rgba(17, 40, 77, 0.3);
+}
+
+/* Tombol Kembali (Light Style) */
 .btn-cancel {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
     background: #f1f5f9;
-    color: var(--text-muted);
-    padding: 10px 16px;
-    border-radius: 10px;
-    text-decoration: none;
-    font-size: 0.85rem;
-    font-weight: 600;
-    transition: 0.2s;
+    color: #64748b !important;
+    border: 1px solid #e2e8f0;
 }
 
 .btn-cancel:hover {
     background: #e2e8f0;
-    color: var(--text-main);
+    color: #475569 !important;
 }
 
-/* Submit */
-.btn-submit {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 10px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.btn-submit:hover {
-    opacity: 0.9;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
+/* Penyesuaian untuk layar sangat kecil */
+@media (max-width: 480px) {
     .form-actions {
+        gap: 10px; /* Jarak lebih kecil di layar HP */
+    }
+    
+    .btn-submit, .btn-cancel {
+        font-size: 0.9rem; /* Ukuran font sedikit lebih kecil */
+        padding: 0 10px;
+    }
+}
+/* --- 5. RESPONSIVE OPTIMIZATION --- */
+
+/* Medium Devices (Tablet) */
+@media (max-width: 992px) {
+    .user-header-wrapper {
         flex-direction: column;
         align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .user-container .search-form {
+        max-width: 100%;
+        order: 2;
     }
 
-    .btn-submit,
-    .btn-cancel {
+    .btn-add-modern {
+        order: 1;
         justify-content: center;
+    }
+}
+
+/* Mobile Devices (Modern Card System) */
+@media (max-width: 768px) {
+    .user-container {
+        padding: 1rem;
+        background: transparent; /* Membuat kesan card melayang di atas background utama */
+        border: none;
+        box-shadow: none;
+    }
+
+    .table-responsive {
+        border: none;
+        overflow: visible;
+    }
+
+    .user-table thead {
+        display: none; 
+    }
+
+    .user-table, .user-table tbody, .user-table tr, .user-table td {
+        display: block;
         width: 100%;
+    }
+
+    .user-table tr {
+        background: var(--white);
+        border: 1px solid rgba(0,0,0,0.05);
+        border-radius: 20px; /* Lebih rounded agar kekinian */
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); /* Soft shadow */
+    }
+
+    .user-table td {
+        display: flex;
+        justify-content: space-between; /* Menjaga Label di kiri, Data di kanan */
+        align-items: center;
+        text-align: right;
+        padding: 12px 8px;
+        border-bottom: 1px dashed #f1f5f9; /* Garis putus-putus lebih estetik */
+        min-height: 50px;
+    }
+
+    .user-table td:last-child {
+        border-bottom: none;
+        flex-direction: column; /* Tombol aksi jadi berjejer rapi di bawah */
+        gap: 10px;
+        padding-top: 15px;
+    }
+
+    /* Styling Label (Nama, Email, Role) */
+    .user-table td::before {
+        content: attr(data-label);
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        color: #94a3b8; /* Warna abu-abu muted profesional */
+        text-align: left;
+    }
+
+    /* Styling isi data agar lebih menonjol */
+    .user-table td {
+        font-weight: 600;
+        color: var(--text-main);
+    }
+
+    .user-action-buttons {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Membagi 2 kolom sama besar */
+        gap: 10px;
+    }
+    
+    .btn-action {
+        width: 100%;
+        height: 44px;
+        border-radius: 12px;
+        font-size: 1rem;
+    }
+}
+
+/* Mobile Floating Action Button (Kekinian) */
+@media (max-width: 480px) {
+    .btn-add-modern span {
+        display: none;
+    }
+    
+    .btn-add-modern {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        position: fixed;
+        bottom: 30px;
+        right: 20px;
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--primary), #4f46e5); /* Gradient modern */
+        box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+    }
+    
+    .btn-add-modern i {
+        font-size: 1.5rem;
     }
 }

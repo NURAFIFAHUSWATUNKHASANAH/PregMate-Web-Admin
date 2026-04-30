@@ -6,27 +6,32 @@
 
 <style>
 /* Badge tambahan untuk type */
+.badge-wajib, .badge-optional {
+    display: inline-flex;    /* Gunakan flex agar icon dan teks sejajar */
+    align-items: center;
+    justify-content: center;
+    gap: 6px;                /* Jarak antara icon dan teks */
+    padding: 6px 14px;       /* Padding lebih lega agar tidak mepet */
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;     /* KUNCI: Mencegah teks turun ke bawah atau terpotong */
+    min-width: 100px;        /* Opsional: Agar lebar badge seragam */
+}
+
 .badge-wajib {
     background: #ff4d6d;
     color: white;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
 }
 
 .badge-optional {
-    background: #6c757d;
+    background: #64748b;     /* Warna abu-abu yang lebih solid */
     color: white;
-    padding: 5px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
 }
 
-/* sedikit rapihin table */
-.user-table td {
-    vertical-align: middle;
+/* Memastikan icon tidak merusak layout */
+.badge-wajib i, .badge-optional i {
+    font-size: 11px;
 }
 </style>
 {% endblock %}
@@ -88,18 +93,18 @@
                             </span>
                         </td>
 
-                        <!-- TYPE (WAJIB / OPTIONAL) -->
-                        <td>
-                            {% if item.type == 'wajib' %}
-                                <span class="badge-wajib">
-                                    <i class="fas fa-check-circle"></i> Wajib
-                                </span>
-                            {% else %}
-                                <span class="badge-optional">
-                                    <i class="fas fa-circle-info"></i> Optional
-                                </span>
-                            {% endif %}
-                        </td>
+<!-- TYPE (WAJIB / OPTIONAL) -->
+<td style="white-space: nowrap;"> <!-- Tambahan style inline untuk memastikan keamanan -->
+    {% if item.type == 'wajib' %}
+        <span class="badge-wajib">
+            <i class="fas fa-check-circle"></i> Wajib
+        </span>
+    {% else %}
+        <span class="badge-optional">
+            <i class="fas fa-circle-info"></i> Optional
+        </span>
+    {% endif %}
+</td>
 
                         <!-- AKSI -->
                         <td>

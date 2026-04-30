@@ -3,148 +3,158 @@
   --midnight-soft: #123a75;
   --rose: #FF8E9E;
   --rose-soft: rgba(255, 142, 158, 0.12);
-
   --primary: var(--midnight);
   --primary-hover: var(--midnight-soft);
   --primary-soft: rgba(12, 45, 87, 0.08);
-
   --bg-body: #FAFBFF;
   --text-main: #0F172A;
   --text-muted: #64748B;
-
   --white: #ffffff;
-  --border: rgba(226, 232, 240, 0.7);
-
+  --border: rgba(226, 232, 240, 0.8);
   --shadow-sm: 0 4px 12px rgba(12, 45, 87, 0.08);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* BODY */
+/* RESET & BASE */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   background-color: var(--bg-body);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
-/* NAVBAR */
+/* NAVBAR MAIN */
 .navbar {
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 1000;
-  padding: 0 2rem;
+  height: 72px;
+  width: 100%;
 }
 
-/* CONTAINER */
 .nav-container {
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
-  height: 72px;
+  height: 100%;
+  padding: 0 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-/* BRAND */
+/* LEFT SIDE: HAMBURGER & BRAND */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menu-toggle {
+  display: none; /* Default hidden di desktop */
+  background: var(--primary-soft);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  color: var(--midnight);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: var(--transition);
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-toggle:hover {
+  background: var(--midnight);
+  color: white;
+}
+
 .nav-brand {
   display: flex;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
+  text-decoration: none;
 }
 
 .logo-icon {
   background: linear-gradient(135deg, var(--midnight), var(--rose));
   color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  box-shadow: 0 8px 20px rgba(12, 45, 87, 0.25);
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(12, 45, 87, 0.2);
 }
 
 .brand-text {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
   color: var(--midnight);
+  letter-spacing: -0.5px;
 }
 
 .brand-text span {
   color: var(--rose);
 }
 
-/* MENU */
+/* CENTER: MENU */
 .nav-menu {
   display: flex;
-  gap: 6px;
-  background: rgba(12, 45, 87, 0.05);
-  padding: 5px;
+  gap: 8px;
+  background: rgba(12, 45, 87, 0.04);
+  padding: 6px;
   border-radius: 14px;
 }
 
 .nav-item {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 9px 18px;
+  padding: 8px 16px;
   text-decoration: none;
   color: var(--text-muted);
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 500;
   border-radius: 10px;
-  transition: all 0.25s ease;
+  transition: var(--transition);
 }
 
-.nav-item i {
-  font-size: 0.95rem;
-  transition: transform 0.2s ease;
-}
-
-/* HOVER */
-.nav-item:hover {
+.nav-item:hover, .nav-item.active {
   color: var(--midnight);
   background: var(--white);
   box-shadow: var(--shadow-sm);
 }
 
-.nav-item:hover i {
-  transform: translateY(-1px);
-}
-
-/* ACTIVE */
-.nav-item.active {
-  background: var(--white);
-  color: var(--midnight);
-  box-shadow: var(--shadow-sm);
-  font-weight: 600;
-}
-
-/* RIGHT SIDE */
+/* RIGHT SIDE: ACTIONS */
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 1.5rem;
 }
 
 .action-buttons {
   display: flex;
   gap: 8px;
+  padding-right: 1.5rem;
   border-right: 1px solid var(--border);
-  padding-right: 20px;
 }
 
-/* ICON BUTTON */
 .btn-icon {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: none;
   background: transparent;
   color: var(--text-muted);
@@ -153,7 +163,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.25s ease;
+  transition: var(--transition);
 }
 
 .btn-icon:hover {
@@ -161,11 +171,7 @@ body {
   color: var(--rose);
 }
 
-/* NOTIFICATION */
-.notification {
-  position: relative;
-}
-
+.notification { position: relative; }
 .badge-dot {
   position: absolute;
   top: 10px;
@@ -177,22 +183,21 @@ body {
   border-radius: 50%;
 }
 
-/* PROFILE */
+/* PROFILE SECTION */
 .nav-profile {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 6px 10px;
-  border-radius: 16px;
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.25s ease;
+  padding: 4px 8px;
+  border-radius: 12px;
+  transition: var(--transition);
 }
 
 .nav-profile:hover {
   background: var(--primary-soft);
 }
 
-/* PROFILE INFO */
 .profile-info {
   display: flex;
   flex-direction: column;
@@ -200,32 +205,30 @@ body {
 }
 
 .admin-name {
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--midnight);
-  line-height: 1.2;
+  display: block;
 }
 
 .admin-role {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 
-/* AVATAR */
 .avatar-wrapper {
   position: relative;
-}
-
-.nav-profile img {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  object-fit: cover;
-  border: 2px solid var(--white);
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
 
-/* STATUS */
+.avatar-wrapper img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
 .status-indicator {
   position: absolute;
   bottom: -2px;
@@ -237,9 +240,47 @@ body {
   border-radius: 50%;
 }
 
-/* DROPDOWN ICON */
 .toggle-icon {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
-  margin-left: -4px;
+}
+
+/* --- RESPONSIVE BREAKPOINTS --- */
+
+/* Tablet & Smaller Desktop (Mulai menyembunyikan elemen dekoratif) */
+@media (max-width: 1100px) {
+  .nav-menu { display: none; } /* Menu pindah ke Sidebar (Hamburger) */
+  .menu-toggle { display: flex; }
+}
+
+/* HP & Tablet (Max 768px) */
+@media (max-width: 768px) {
+  .nav-container { padding: 0 1rem; }
+  
+  .action-buttons {
+    padding-right: 0.75rem;
+    gap: 4px;
+  }
+  
+  .profile-info, .toggle-icon {
+    display: none; /* Sembunyikan teks profil agar tidak sesak */
+  }
+
+  .nav-actions { gap: 0.5rem; }
+  
+  .btn-icon { width: 36px; height: 36px; }
+  
+  .brand-text { font-size: 1.1rem; }
+}
+
+/* Small Mobile (Max 480px) */
+@media (max-width: 480px) {
+  .action-buttons {
+    border-right: none;
+    padding-right: 0;
+  }
+  
+  .btn-icon[aria-label="Search"] {
+    display: none; /* Sembunyikan search jika layar terlalu sempit */
+  }
 }

@@ -1,57 +1,33 @@
 {% extends 'layouts/layout.html' %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 {% endblock %}
 
 {% block content %}
 
 <div class="dashboard-wrapper">
+
+    <!-- HEADER -->
     <header class="dashboard-header">
         <div class="header-left">
             <h1>Selamat Datang, Admin</h1>
             <p>Berikut adalah ringkasan performa sistem hari ini.</p>
         </div>
-        <div class="header-right">
-            <button class="btn-primary">
-                <i class="fas fa-plus"></i> Tambah Laporan
-            </button>
-        </div>
     </header>
 
+    <!-- STATS -->
     <section class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon icon-blue">
-                <i class="fas fa-user-injured"></i>
-            </div>
-            <div class="stat-content">
-                <span class="stat-label">Total Keluhan</span>
-                <h3 class="stat-value">1,284</h3>
-                <span class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> 12%</span>
-            </div>
-        </div>
-
-        <div class="stat-card">
-            <div class="stat-icon icon-green">
-                <i class="fas fa-notes-medical"></i>
-            </div>
-            <div class="stat-content">
-                <span class="stat-label">Terapi Selesai</span>
-                <h3 class="stat-value">856</h3>
-                <span class="stat-trend trend-up"><i class="fas fa-arrow-up"></i> 5%</span>
-            </div>
-        </div>
 
         <div class="stat-card">
             <div class="stat-icon icon-purple">
                 <i class="fas fa-users"></i>
             </div>
             <div class="stat-content">
-                <span class="stat-label">User Aktif</span>
-                <h3 class="stat-value">3,412</h3>
-                <span class="stat-trend trend-down"><i class="fas fa-arrow-down"></i> 2%</span>
+                <span class="stat-label">Total User</span>
+                <h3 class="stat-value">{{ stats.total_user }}</h3>
+                <span class="stat-trend">Realtime</span>
             </div>
         </div>
 
@@ -60,65 +36,106 @@
                 <i class="fas fa-newspaper"></i>
             </div>
             <div class="stat-content">
-                <span class="stat-label">Artikel Terbit</span>
-                <h3 class="stat-value">42</h3>
-                <span class="stat-trend">Baru</span>
+                <span class="stat-label">Total Artikel</span>
+                <h3 class="stat-value">{{ stats.total_artikel }}</h3>
+                <span class="stat-trend">Realtime</span>
             </div>
         </div>
+
+        <div class="stat-card">
+            <div class="stat-icon icon-pink">
+                <i class="fas fa-baby"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Tips Newborn</span>
+                <h3 class="stat-value">{{ stats.total_tips }}</h3>
+                <span class="stat-trend">Realtime</span>
+            </div>
+        </div>
+
     </section>
 
+    <!-- MAIN GRID -->
     <div class="main-grid">
+
+        <!-- AKTIVITAS -->
         <div class="content-card table-container">
-            <div class="card-header">
-                <h3>Aktivitas Terakhir</h3>
-                <a href="#" class="btn-text">Lihat Semua</a>
-            </div>
             <table class="modern-table">
                 <thead>
                     <tr>
                         <th>User</th>
-                        <th>Keluhan</th>
+                        <th>Aktivitas</th>
                         <th>Status</th>
                         <th>Tanggal</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            <div class="table-user">
-                                <img src="https://ui-avatars.com/api/?name=Rudi&background=random" alt="">
-                                <span>Rudi Tabuti</span>
-                            </div>
-                        </td>
-                        <td>Nyeri Punggung Bawah</td>
-                        <td><span class="status-badge badge-pending">Proses</span></td>
-                        <td>20 Feb 2024</td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div class="table-user">
-                                <img src="https://ui-avatars.com/api/?name=Siti&background=random" alt="">
-                                <span>Siti Aminah</span>
-                            </div>
-                        </td>
-                        <td>Pemulihan Pasca Stroke</td>
-                        <td><span class="status-badge badge-success">Selesai</span></td>
-                        <td>19 Feb 2024</td>
-                    </tr>
-                </tbody>
+
+<!-- Ganti bagian tbody Anda dengan ini -->
+<tbody>
+    {% for act in activities %}
+    <tr>
+        <td data-label="User">
+            <div class="table-user">
+                <img src="{{ act.avatar }}" alt="">
+                <span>{{ act.user }}</span>
+            </div>
+        </td>
+        <td data-label="Aktivitas">{{ act.action }}</td>
+        <td data-label="Status">
+            {% if act.status == 'success' %}
+                <span class="status-badge badge-success">Success</span>
+            {% else %}
+                <span class="status-badge badge-pending">Failed</span>
+            {% endif %}
+        </td>
+        <td data-label="Tanggal">{{ act.tanggal }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
             </table>
+
         </div>
 
-        <div class="content-card">
-            <div class="card-header">
-                <h3>Analistik Mingguan</h3>
-            </div>
-            <div class="chart-placeholder">
-                <i class="fas fa-chart-line"></i>
-                <p>Grafik akan muncul di sini</p>
+        <!-- CHART -->
+<!-- ABOUT APP SECTION -->
+<div class="content-card about-app-card">
+    <div class="card-header-modern">
+        <div class="brand-title">
+            <i class="fas fa-shield-heart"></i>
+            <h3>Tentang PregMate</h3>
+        </div>
+        <span class="status-pill">v1.0-Stable</span>
+    </div>
+
+    <div class="app-body">
+        <p class="app-motto">
+            Solusi cerdas monitoring kesehatan dan aktivitas ibu masa kini.
+        </p>
+
+        <div class="feature-pills">
+            <span class="pill"><i class="fas fa-video"></i> Monitoring</span>
+            <span class="pill"><i class="fas fa-comments"></i> Komunitas</span>
+            <span class="pill"><i class="fas fa-book-open"></i> Edukasi</span>
+        </div>
+
+        <div class="app-description-box">
+            <p><strong>PregMate</strong> hadir untuk memberikan pengalaman monitoring aktivitas yang intuitif, didukung oleh pengolahan data yang efisien guna memastikan keamanan dan kenyamanan ibu setiap saat.</p>
+        </div>
+
+        <div class="dev-footer">
+            <div class="dev-profile">
+                <div class="dev-avatar">NA</div>
+                <div class="dev-meta">
+                    <span class="dev-label">Developer</span>
+                    <span class="dev-name">Nur Afifah Uswatun Khasanah</span>
                 </div>
+            </div>
+            <div class="dev-year">2026</div>
         </div>
     </div>
+</div>
+    </div>
+
 </div>
 
 {% endblock %}

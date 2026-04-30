@@ -6,40 +6,97 @@
 {% endblock %}
 
 {% block content %}
-<div class="form-card">
-    <header class="form-header">
-        <h2>
-            <i class="fas fa-file-circle-plus" style="color: var(--primary);"></i>
-            Tambah Artikel Baru
-        </h2>
-        <a href="{{ url_for('artikel_bp.index') }}" class="btn-back">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
-    </header>
+<div class="form-container">
+    
+    <div class="form-wrapper"> <!-- Memastikan lebar konsisten -->
 
-    <form action="{{ url_for('artikel_bp.create') }}" method="POST" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="title"><i class="fas fa-heading icon-label"></i> Judul Artikel</label>
-            <input type="text" name="title" id="title" required class="form-control" placeholder="Masukkan judul yang menarik...">
+        <!-- HEADER -->
+        <div class="form-header">
+            <div class="form-title-group">
+                <i class="fas fa-file-circle-plus"></i>
+                <div>
+                    <h2>Tambah Artikel</h2>
+                    <p class="subtitle">Buat konten edukasi kesehatan baru untuk pengguna</p>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label for="content"><i class="fas fa-align-left icon-label"></i> Isi Konten</label>
-            <textarea name="content" id="content" rows="10" required class="form-control" placeholder="Tuliskan isi artikel secara lengkap di sini..."></textarea>
+        <!-- CARD -->
+        <div class="form-card">
+
+            <form action="{{ url_for('artikel_bp.create') }}" method="POST" enctype="multipart/form-data">
+
+                <!-- JUDUL ARTIKEL -->
+                <div class="form-group">
+                    <label>Judul Artikel</label>
+                    <div class="input-icon">
+                        <i class="fas fa-heading"></i>
+                        <input 
+                            type="text" 
+                            name="title" 
+                            id="title" 
+                            class="form-control"
+                            placeholder="Masukkan judul yang menarik..."
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- ISI KONTEN -->
+                <div class="form-group">
+                    <label>Isi Konten</label>
+                    <div class="input-icon">
+                        <!-- Icon diletakkan agak ke atas untuk textarea -->
+                        <i class="fas fa-align-left" style="top: 20px; transform: none;"></i> 
+                        <textarea 
+                            name="content" 
+                            id="content" 
+                            rows="10" 
+                            class="form-control" 
+                            placeholder="Tuliskan isi artikel secara lengkap di sini..."
+                            required
+                            style="padding-top: 15px;"
+                        ></textarea>
+                    </div>
+                </div>
+
+                <!-- UPLOAD GAMBAR -->
+                <div class="form-group">
+                    <label>Gambar Sampul</label>
+                    <div class="input-icon">
+                        <i class="fas fa-image"></i>
+                        <input 
+                            type="file" 
+                            name="image" 
+                            id="image" 
+                            accept="image/*" 
+                            class="form-control"
+                            style="padding-top: 12px;"
+                        >
+                    </div>
+                    <small style="color: var(--text-muted); margin-top: 8px; display: block; margin-left: 5px;">
+                        <i class="fas fa-info-circle"></i> Format: JPG, PNG, atau WEBP.
+                    </small>
+                </div>
+
+                <!-- ACTION BUTTONS (GRID 2 KOLOM) -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">
+                        Simpan
+                    </button>
+                    <!-- Tombol Batal -->
+                    <a href="{{ url_for('artikel_bp.index') }}" class="btn-cancel">
+                        Batal
+                    </a>
+
+                    <!-- Tombol Simpan -->
+
+                </div>
+
+            </form>
+
         </div>
 
-        <div class="form-group">
-            <label for="image"><i class="fas fa-image icon-label"></i> Gambar Sampul (Upload)</label>
-            <input type="file" name="image" id="image" accept="image/*" class="form-control" style="padding: 10px;">
-            <small style="color: var(--text-muted); margin-top: 5px; display: block;">Format: JPG, PNG, atau WEBP.</small>
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn-submit">
-                <i class="fas fa-save"></i> Simpan Artikel
-            </button>
-            <a href="{{ url_for('artikel_bp.index') }}" class="btn-cancel">Batal</a>
-        </div>
-    </form>
+    </div>
 </div>
 {% endblock %}
