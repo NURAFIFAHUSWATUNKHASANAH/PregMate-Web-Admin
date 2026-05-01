@@ -38,40 +38,51 @@ def send_push_notification(token, title, body):
 
 def check_schedule(db):
     now = datetime.now()
+    # Ambil jadwal yang belum dikirim
     schedules = db.schedules.find({"dikirim": {"$ne": True}})
 
     for schedule in schedules:
         try:
-            tanggal = schedule["tanggal"]
-            jam = schedule["jam"]
+            tanggal = schedule["tanggal"]   # format dari Flutter: 01-05-2026
+            jam = schedule["jam"]           # format dari Flutter: 15:58 atau 03:58 PM
             pesan = schedule["pesan"]
             user_id = schedule["user_id"]
 
-            waktu_jadwal = datetime.strptime(f"{tanggal} {jam}", "%Y-%m-%d %H:%M")
+            # 🔥 FIX: Sesuaikan format string dengan data yang masuk
+            try:
+                # Coba format 24 jam (misal: 15:58)
+                # Gunakan %d-%m-%Y karena Flutter mengirim dd-MM-yyyy
+                waktu_jadwal = datetime.strptime(
+                    f"{tanggal} {jam}", 
+                    "%d-%m-%Y %H:%M"
+                )
+            except ValueError:
+                # Jika gagal, coba format 12 jam (misal: 03:58 PM)
+                waktu_jadwal = datetime.strptime(
+                    f"{tanggal} {jam}", 
+                    "%d-%m-%Y %I:%M %p"
+                )
 
+            # Cek apakah sudah waktunya (atau sudah lewat)
             if now >= waktu_jadwal:
-
                 user = db.users.find_one({"_id": ObjectId(user_id)})
-
+                
                 if not user:
-                    print(f"❌ User tidak ditemukan: {user_id}")
                     continue
 
                 token = get_token(user)
-
-                if not token:
-                    print(f"⚠️ Token kosong untuk user {user_id}")
-                    continue
-
-                send_push_notification(token, "Pengingat", pesan)
-
-                db.schedules.update_one(
-                    {"_id": schedule["_id"]},
-                    {"$set": {"dikirim": True}}
-                )
+                if token:
+                    send_push_notification(token, "Pengingat Jadwal", pesan)
+                    
+                    # Tandai sudah dikirim agar tidak looping terus
+                    db.schedules.update_one(
+                        {"_id": schedule["_id"]},
+                        {"$set": {"dikirim": True}}
+                    )
+                    print(f"✅ Notifikasi berhasil dikirim ke {user.get('nama')}")
 
         except Exception as e:
-            print(f"❌ Error memproses jadwal: {e}")
+            print(f"❌ Error memproses jadwal ID {schedule.get('_id')}: {e}")
 
 def get_token(user):
     return user.get("fcmToken") or user.get("tokenFCM") or user.get("token")
