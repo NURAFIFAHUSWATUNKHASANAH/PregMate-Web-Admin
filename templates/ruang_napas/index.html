@@ -1,0 +1,107 @@
+{% extends 'layouts/layout.html' %}
+
+{% block title %}Kelola Meditasi | AdminPanel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="user-container">
+    
+    <!-- HEADER -->
+    <div class="user-header-wrapper">
+        
+        <div class="user-title-group">
+            <i class="fas fa-spa"></i>
+            <div>
+                <h2>Kelola Meditasi</h2>
+                <p class="subtitle">Manajemen sesi meditasi PregMate</p>
+            </div>
+        </div>
+
+        <!-- SEARCH -->
+        <form class="search-form" method="GET">
+            <input 
+                type="text" 
+                name="search"
+                class="search-input" 
+                placeholder="Cari judul meditasi..."
+                value="{{ request.args.get('search','') }}"
+            >
+            <button type="submit" class="btn-search">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+
+        <!-- ADD -->
+        <a href="{{ url_for('meditation_bp.create') }}" class="btn-add-modern">
+            <i class="fas fa-plus"></i>
+            <span>Tambah</span>
+        </a>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>Judul</th>
+                    <th>Deskripsi</th>
+                    <th>Durasi (detik)</th>
+                    <th style="text-align:center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if sessions %}
+                    {% for s in sessions %}
+                    <tr>
+                        <td data-label="Judul">{{ s.title }}</td>
+                        <td data-label="Deskripsi">{{ s.description }}</td>
+                        <td data-label="Durasi">{{ s.duration }}</td>
+
+                        <td data-label="Aksi">
+                            <div class="user-action-buttons">
+                                
+                                <!-- EDIT -->
+<a href="{{ url_for('meditation_bp.edit', id=s._id) }}" 
+   class="btn-action btn-edit">
+                                    <i class="fas fa-pen-to-square"></i>
+                                </a>
+
+                                <!-- DELETE -->
+
+<a href="#" 
+   class="btn-action btn-delete btn-hapus"
+   data-url="{{ url_for('meditation_bp.delete', id=s._id) }}"
+   data-nama="{{ s.title }}">
+    <i class="fas fa-trash"></i>
+</a>
+
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            <div class="empty-content">
+                                <i class="fas fa-spa fa-3x"></i>
+                                <h3>Belum Ada Data</h3>
+                                <p>Sesi meditasi belum tersedia.</p>
+                                <a href="{{ url_for('meditation.index') }}" class="btn-refresh">Refresh</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/allert.js') }}"></script>
+{% endblock %}

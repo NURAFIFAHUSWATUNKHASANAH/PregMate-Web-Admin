@@ -27,11 +27,17 @@
         </a>
       </li>
       <li>
-  <a href="/admin/tips-newborn" class="sidebar-link">
-    <i class="fas fa-baby-carriage"></i>
-    <span>Master Tips Newborn</span>
-  </a>
-</li>
+        <a href="/admin/tips-newborn" class="sidebar-link">
+          <i class="fas fa-baby-carriage"></i>
+          <span>Master Tips</span>
+        </a>
+      </li>
+      <li>
+        <a href="/admin/meditation" class="sidebar-link">
+          <i class="fas fa-spa"></i>
+          <span>Ruang Napas</span>
+        </a>
+      </li>
       <li>
         <a href="{{ url_for('histori_user_bp.histori_user_page') }}" class="sidebar-link">
           <i class="fas fa-history"></i>
@@ -45,9 +51,7 @@
     <small class="sidebar-label">PENGATURAN</small>
     <ul class="nav-list">
       <li>
-        <a href="#"
-           class="sidebar-link logout-link btn-logout"
-           data-url="{{ url_for('admin_bp.logout') }}">
+        <a href="#" class="sidebar-link logout-link btn-logout" data-url="{{ url_for('admin_bp.logout') }}">
           <i class="fas fa-sign-out-alt"></i>
           <span>Logout</span>
         </a>
@@ -65,7 +69,7 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/allert.js') }}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function () {
     const menuToggle = document.querySelector('.menu-toggle');
     const sidebar = document.querySelector('.sidebar');
     const menuIcon = menuToggle.querySelector('i');
@@ -73,36 +77,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 1. Fungsi Toggle Sidebar
     menuToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        sidebar.classList.toggle('show');
-        
-        // Animasi pergantian icon
-        if (sidebar.classList.contains('show')) {
-            menuIcon.classList.replace('fa-bars', 'fa-times');
-        } else {
-            menuIcon.classList.replace('fa-times', 'fa-bars');
-        }
+      e.stopPropagation();
+      sidebar.classList.toggle('show');
+
+      // Animasi pergantian icon
+      if (sidebar.classList.contains('show')) {
+        menuIcon.classList.replace('fa-bars', 'fa-times');
+      } else {
+        menuIcon.classList.replace('fa-times', 'fa-bars');
+      }
     });
 
     // 2. Tutup sidebar jika klik di luar area sidebar
     document.addEventListener('click', (e) => {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-            if (sidebar.classList.contains('show')) {
-                sidebar.classList.remove('show');
-                menuIcon.classList.replace('fa-times', 'fa-bars');
-            }
+      if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+        if (sidebar.classList.contains('show')) {
+          sidebar.classList.remove('show');
+          menuIcon.classList.replace('fa-times', 'fa-bars');
         }
+      }
     });
 
     // 3. Tutup sidebar setelah mengklik salah satu menu (penting untuk mobile)
     navLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth <= 992) {
-                sidebar.classList.remove('show');
-                menuIcon.classList.replace('fa-times', 'fa-bars');
-            }
-        });
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 992) {
+          sidebar.classList.remove('show');
+          menuIcon.classList.replace('fa-times', 'fa-bars');
+        }
+      });
     });
-});
+  });
 </script>
 {% endblock %}

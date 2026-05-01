@@ -1,0 +1,97 @@
+{% extends 'layouts/layout.html' %}
+
+{% block title %}Edit Meditasi | AdminPanel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    
+    <div class="form-wrapper">
+
+        <!-- HEADER -->
+        <div class="form-header">
+            <div class="form-title-group">
+                <i class="fas fa-pen"></i>
+                <div>
+                    <h2>Edit Meditasi</h2>
+                    <p class="subtitle">Perbarui sesi meditasi</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD -->
+        <div class="form-card">
+            <form method="POST">
+
+                <!-- TITLE -->
+                <div class="form-group">
+                    <label>Judul</label>
+                    <div class="input-icon">
+                        <i class="fas fa-heading"></i>
+                        <input 
+                            type="text" 
+                            name="title" 
+                            value="{{ session.title }}" 
+                            class="form-control" 
+                            placeholder="Masukkan judul meditasi..."
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- DESCRIPTION -->
+                <div class="form-group">
+                    <label>Deskripsi</label>
+                    <div class="input-icon">
+                        <i class="fas fa-align-left"></i>
+                        <input 
+                            type="text" 
+                            name="description" 
+                            value="{{ session.description }}" 
+                            class="form-control" 
+                            placeholder="Masukkan deskripsi..."
+                            required
+                        >
+                    </div>
+                </div>
+
+                <!-- DURATION -->
+                <div class="form-group">
+                    <label>Durasi (detik)</label>
+                    <div class="input-icon">
+                        <i class="fas fa-clock"></i>
+                        <input 
+                            type="number" 
+                            name="duration" 
+                            value="{{ session.duration }}" 
+                            class="form-control"
+                            min="1"
+                        >
+                    </div>
+                </div>
+
+                <!-- ACTION -->
+                <div class="form-actions">
+                    
+                    <!-- BUTTON UPDATE -->
+                    <button type="submit" class="btn-submit">
+                        Update
+                    </button>
+
+                    <!-- BUTTON KEMBALI (FIX ERROR DI SINI) -->
+                    <a href="{{ url_for('meditation_bp.index') }}" class="btn-cancel">
+                        Kembali
+                    </a>
+
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
