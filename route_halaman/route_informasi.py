@@ -65,3 +65,4 @@ def get_informasi():
         "status": "success",
         "data": data
     })
+

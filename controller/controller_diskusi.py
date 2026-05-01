@@ -159,3 +159,19 @@ def delete_post(post_id):
     )
 
     return jsonify({"message": "Post deleted"})
+
+def edit_comment(post_id, index):
+
+    data = request.get_json()
+    content = data.get("content")
+
+    result = diskusi_model.edit_comment(post_id, int(index), content)
+
+    return jsonify(result)
+
+
+def delete_comment(post_id, index):
+
+    result = diskusi_model.delete_comment(post_id, int(index))
+
+    return jsonify(result)

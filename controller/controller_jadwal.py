@@ -53,3 +53,57 @@ def buat_jadwal():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@jadwal_bp.route('/jadwal', methods=['GET'])
+def get_jadwal():
+    user_id = request.args.get("user_id")
+
+    data = list(db.schedules.find({"user_id": user_id}))
+
+    for d in data:
+        d["_id"] = str(d["_id"])
+
+    return jsonify(data)
+
+@jadwal_bp.route('/jadwal/<id>', methods=['PUT'])
+def update_jadwal(id):
+    try:
+        data = request.get_json()
+
+        update_data = {
+            "tanggal": data["tanggal"],
+            "jam": data["jam"],
+            "pesan": data["pesan"],
+        }
+
+        db.schedules.update_one(
+            {"_id": ObjectId(id)},
+            {"$set": update_data}
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Jadwal berhasil diupdate"
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@jadwal_bp.route('/jadwal/<id>', methods=['DELETE'])
+def delete_jadwal(id):
+    try:
+        result = db.schedules.delete_one({"_id": ObjectId(id)})
+
+        if result.deleted_count == 0:
+            return jsonify({
+                "status": "error",
+                "message": "Jadwal tidak ditemukan"
+            }), 404
+
+        return jsonify({
+            "status": "success",
+            "message": "Jadwal berhasil dihapus"
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

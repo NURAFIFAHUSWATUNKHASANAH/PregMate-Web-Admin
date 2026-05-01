@@ -93,3 +93,36 @@ class DiskusiModel:
                 }
             )
             return {"message": "Liked"}
+        
+    def edit_comment(self, post_id, comment_index, new_content):
+
+        self.collection.update_one(
+            {"_id": ObjectId(post_id)},
+            {
+                "$set": {
+                    f"comments.{comment_index}.content": new_content
+                }
+            }
+        )
+
+        return {"message": "Comment updated"}
+
+    def delete_comment(self, post_id, comment_index):
+
+        post = self.collection.find_one({"_id": ObjectId(post_id)})
+
+        if not post:
+            return {"message": "Post not found"}
+
+        comments = post.get("comments", [])
+
+        if comment_index < len(comments):
+
+            comments.pop(comment_index)
+
+            self.collection.update_one(
+                {"_id": ObjectId(post_id)},
+                {"$set": {"comments": comments}}
+            )
+
+        return {"message": "Comment deleted"}
