@@ -48,9 +48,13 @@
                     <td>{{ t.desc }}</td>
 
                     <td>
-                        <video width="140" controls style="border-radius:12px;">
-                            <source src="{{ t.video_url }}">
-                        </video>
+{% if t.video_url %}
+<video width="140" controls style="border-radius:12px;">
+    <source src="{{ t.video_url }}" type="video/mp4">
+</video>
+{% else %}
+<p style="color:red;">Video tidak tersedia</p>
+{% endif %}
                     </td>
 
                     <td>

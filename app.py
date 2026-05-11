@@ -58,7 +58,8 @@ mood_ibu_hamil_collection = db["mood_ibu_hamil"]
 cravings_collection = db["cravings"]
 informasi_collection = db["informasi"]
 
-app.config["UPLOAD_VIDEO"] = os.path.join("static", "videos")
+app.config["UPLOAD_VIDEO"] = os.path.join(app.root_path, "static", "videos")
+os.makedirs(app.config["UPLOAD_VIDEO"], exist_ok=True)
 # ============================== IMPORT MODEL & CONTROLLER ==============================
 
 # Models

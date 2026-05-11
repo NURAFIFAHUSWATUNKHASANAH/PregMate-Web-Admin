@@ -11,12 +11,15 @@ def admin_index_tips():
 
     # 🔥 FIX: mapping video_url + samakan variabel tips
     tips = []
+
     for d in data:
+        video = d.get("video")
+
         tips.append({
             "id": str(d["_id"]),
             "title": d.get("title", ""),
             "desc": d.get("desc", ""),
-            "video_url": f"/static/videos/{d.get('video', '')}"
+            "video_url": f"/static/videos/{video}" if video else None
         })
 
     return render_template("tips_newborn/index.html", tips=tips)
@@ -39,7 +42,10 @@ def admin_create_tips():
         os.makedirs(upload_folder, exist_ok=True)
 
         upload_path = os.path.join(upload_folder, filename)
-        video_file.save(upload_path)
+        try:
+            video_file.save(upload_path)
+        except Exception as e:
+            return f"Upload error: {str(e)}", 500
 
         steps = request.form.getlist("steps[]")
 
