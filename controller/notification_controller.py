@@ -111,7 +111,7 @@ def kirim_notif_relaksasi(user_id, label, durasi, kehamilan_id=None):
         print(f"Tidak ada pendamping ditemukan untuk user_id: {user_id_str}")
         return
 
-    pesan = f"Ibu hamil menyelesaikan latihan {label} selama {durasi} menit 🤰"
+    pesan = f"Ibu hamil menyelesaikan latihan {label}"
     success = 0
 
     for p in pendamping_list:

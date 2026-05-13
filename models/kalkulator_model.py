@@ -82,37 +82,143 @@ class KalkulatorModel:
         except:
             return None
 
+
     # ================= TABUNG =================
     @staticmethod
     def add_income(kehamilan_id, jumlah):
+
+        riwayat = {
+            "_id": ObjectId(),  # 🔥 WAJIB
+            "tipe": "masuk",
+            "jumlah": jumlah,
+            "tanggal": now_wib().strftime("%d-%m-%Y %H:%M")
+        }
+
         KalkulatorModel.collection.update_one(
             {"kehamilan_id": ObjectId(kehamilan_id)},
             {
-                "$inc": {"total_masuk": jumlah},
                 "$push": {
-                    "riwayat": {
-                        "tipe": "masuk",
-                        "jumlah": jumlah,
-                        "tanggal": now_wib().strftime("%d-%m-%Y %H:%M")
-                    }
+                    "riwayat": riwayat
                 }
             }
         )
 
+        # 🔥 AUTO RECALCULATE
+        KalkulatorModel.recalculate(kehamilan_id)
+
     # ================= PENGELUARAN =================
     @staticmethod
     def add_expense(kehamilan_id, jumlah, keterangan):
+
+        riwayat = {
+            "_id": ObjectId(),  # 🔥 WAJIB
+            "tipe": "keluar",
+            "jumlah": jumlah,
+            "keterangan": keterangan,
+            "tanggal": now_wib().strftime("%d-%m-%Y %H:%M")
+        }
+
         KalkulatorModel.collection.update_one(
             {"kehamilan_id": ObjectId(kehamilan_id)},
             {
-                "$inc": {"total_keluar": jumlah},
                 "$push": {
-                    "riwayat": {
-                        "tipe": "keluar",
-                        "jumlah": jumlah,
-                        "keterangan": keterangan,
-                        "tanggal": now_wib().strftime("%d-%m-%Y %H:%M")
-                    }
+                    "riwayat": riwayat
                 }
             }
         )
+
+        # 🔥 AUTO RECALCULATE
+        KalkulatorModel.recalculate(kehamilan_id)
+
+# ================= RECALCULATE =================
+    @staticmethod
+    def recalculate(kehamilan_id):
+        data = KalkulatorModel.collection.find_one({
+            "kehamilan_id": ObjectId(kehamilan_id)
+        })
+
+        if not data:
+            return
+
+        total_masuk = 0
+        total_keluar = 0
+
+        for item in data.get("riwayat", []):
+            if item["tipe"] == "masuk":
+                total_masuk += float(item["jumlah"])
+            else:
+                total_keluar += float(item["jumlah"])
+
+        KalkulatorModel.collection.update_one(
+            {"kehamilan_id": ObjectId(kehamilan_id)},
+            {
+                "$set": {
+                    "total_masuk": total_masuk,
+                    "total_keluar": total_keluar
+                }
+            }
+        )
+
+ # ================= EDIT RIWAYAT =================
+    @staticmethod
+    def edit_riwayat(
+        kehamilan_id,
+        riwayat_id,
+        jumlah,
+        keterangan=""
+    ):
+
+        data = KalkulatorModel.collection.find_one({
+            "kehamilan_id": ObjectId(kehamilan_id)
+        })
+
+        if not data:
+            raise Exception("Data tidak ditemukan")
+
+        riwayat = data.get("riwayat", [])
+
+        for item in riwayat:
+            if str(item["_id"]) == riwayat_id:
+
+                item["jumlah"] = jumlah
+
+                if item["tipe"] == "keluar":
+                    item["keterangan"] = keterangan
+
+                item["edited_at"] = now_wib().strftime("%d-%m-%Y %H:%M")
+
+        KalkulatorModel.collection.update_one(
+            {"kehamilan_id": ObjectId(kehamilan_id)},
+            {
+                "$set": {
+                    "riwayat": riwayat
+                }
+            }
+        )
+
+        KalkulatorModel.recalculate(kehamilan_id)
+
+    # ================= DELETE RIWAYAT =================
+    @staticmethod
+    def delete_riwayat(kehamilan_id, riwayat_id):
+
+        data = KalkulatorModel.collection.find_one({
+            "kehamilan_id": ObjectId(kehamilan_id)
+        })
+
+        if not data:
+            raise Exception("Data tidak ditemukan")
+
+        riwayat = data.get("riwayat", [])
+
+        riwayat_baru = [
+            item for item in riwayat
+            if str(item["_id"]) != str(riwayat_id)
+        ]
+
+        KalkulatorModel.collection.update_one(
+            {"kehamilan_id": ObjectId(kehamilan_id)},
+            {"$set": {"riwayat": riwayat_baru}}
+        )
+
+        KalkulatorModel.recalculate(kehamilan_id)

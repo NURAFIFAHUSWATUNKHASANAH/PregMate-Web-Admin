@@ -31,22 +31,6 @@
 
         </div>
 
-        <!-- SEARCH -->
-        <form class="search-form" onsubmit="return false;">
-
-            <input 
-                type="text"
-                id="customSearch"
-                class="search-input"
-                placeholder="Cari histori aktivitas..."
-                autocomplete="off"
-            >
-
-            <button type="button" class="btn-search">
-                <i class="fas fa-search"></i>
-            </button>
-
-        </form>
 
     </div>
 
@@ -208,10 +192,9 @@
 
 $(document).ready(function () {
 
-    const table = $('#logTable').DataTable({
+    $('#logTable').DataTable({
 
         responsive: true,
-
         pageLength: 10,
 
         lengthMenu: [
@@ -221,36 +204,23 @@ $(document).ready(function () {
 
         order: [[0, "desc"]],
 
-        searching: false,
+        searching: false, // 🔥 MATIKAN SEARCH TOTAL
+
+        dom: 'rtip', // 🔥 TANPA SEARCH + LENGTH FILTER BAWAAAN
 
         language: {
-
             lengthMenu: "_MENU_ data per halaman",
-
             info: "Menampilkan _START_ - _END_ dari _TOTAL_ log",
-
             emptyTable: "Belum ada histori aktivitas.",
-
             zeroRecords: "Data tidak ditemukan.",
-
             paginate: {
                 next: "›",
                 previous: "‹"
             }
-
         }
-
-    });
-
-    // CUSTOM SEARCH
-    $('#customSearch').on('keyup', function () {
-
-        table.search(this.value).draw();
-
     });
 
 });
-
 </script>
 
 {% endblock %}

@@ -1,6 +1,7 @@
 import math
 from zoneinfo import ZoneInfo
 
+from bson import ObjectId
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity
 from datetime import datetime
@@ -196,7 +197,12 @@ def get_dashboard():
 
     result["kehamilan_id"] = str(data.get("kehamilan_id"))
     result["kalkulator_id"] = str(data.get("_id"))
-    result["riwayat"] = data.get("riwayat", [])
+    riwayat = data.get("riwayat", [])
+
+    for item in riwayat:
+      item["_id"] = str(item.get("_id", ""))
+
+    result["riwayat"] = riwayat
 
     return jsonify({
         "status": "success",
@@ -240,3 +246,121 @@ def tambah_pengeluaran():
     KalkulatorModel.add_expense(kehamilan_id, jumlah, keterangan)
 
     return jsonify({"status": "success"})
+
+# ================= EDIT RIWAYAT =================
+def edit_riwayat():
+    data = request.json
+
+    kehamilan_id = data.get("kehamilan_id")
+    riwayat_id = data.get("riwayat_id")
+
+    if not kehamilan_id or not riwayat_id:
+        return jsonify({
+            "status": "error",
+            "message": "kehamilan_id dan riwayat_id wajib",
+            "debug": data
+        }), 400
+
+    try:
+        jumlah = float(data.get("jumlah", 0))
+    except:
+        return jsonify({
+            "status": "error",
+            "message": "Jumlah tidak valid"
+        }), 400
+
+    if jumlah <= 0:
+        return jsonify({
+            "status": "error",
+            "message": "Jumlah harus > 0"
+        }), 400
+
+    try:
+        KalkulatorModel.edit_riwayat(
+            kehamilan_id,
+            riwayat_id,
+            jumlah,
+            data.get("keterangan", "")
+        )
+
+        return jsonify({
+            "status": "success",
+            "message": "Riwayat berhasil diupdate"
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    
+# ================= DELETE RIWAYAT =================
+def delete_riwayat():
+    data = request.json
+
+    kehamilan_id = data.get("kehamilan_id")
+    riwayat_id = data.get("riwayat_id")
+
+    if not kehamilan_id or not riwayat_id:
+        return jsonify({
+            "status": "error",
+            "message": "kehamilan_id dan riwayat_id wajib",
+            "debug": data
+        }), 400
+
+    try:
+        KalkulatorModel.delete_riwayat(kehamilan_id, riwayat_id)
+
+        return jsonify({
+            "status": "success",
+            "message": "Riwayat berhasil dihapus"
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+    
+def update_kalkulator():
+    data = request.json
+
+    kehamilan_id = data.get("kehamilan_id")
+    metode_nabung = data.get("metode_nabung")
+    total_biaya = data.get("total_biaya")
+    pakai_bpjs = data.get("pakai_bpjs")
+
+    if not kehamilan_id:
+        return jsonify({"status": "error", "message": "kehamilan_id wajib"}), 400
+
+    try:
+        update_data = {}
+
+        if metode_nabung:
+            update_data["metode_nabung"] = metode_nabung
+
+        if total_biaya is not None:
+            update_data["total_biaya"] = float(total_biaya)
+
+        if pakai_bpjs is not None:
+            update_data["pakai_bpjs"] = pakai_bpjs
+
+        # 🔥 UPDATE DATA
+        KalkulatorModel.collection.update_one(
+            {"kehamilan_id": ObjectId(kehamilan_id)},
+            {"$set": update_data}
+        )
+
+        # 🔥 OPTIONAL: refresh recalculation (biar langsung update dashboard logic)
+        KalkulatorModel.recalculate(kehamilan_id)
+
+        return jsonify({
+            "status": "success",
+            "message": "Konfigurasi berhasil diupdate"
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500

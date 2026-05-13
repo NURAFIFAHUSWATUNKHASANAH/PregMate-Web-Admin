@@ -5,7 +5,10 @@ from controller.controller_kalkulator import (
     save_kalkulator,
     get_dashboard,
     tambah_tabungan,
-    tambah_pengeluaran
+    tambah_pengeluaran,
+    edit_riwayat,
+    delete_riwayat,
+    update_kalkulator
 )
 
 kalkulator_bp = Blueprint("kalkulator", __name__)
@@ -34,3 +37,19 @@ def tabung():
 @jwt_required()
 def pengeluaran():
     return tambah_pengeluaran()
+
+@kalkulator_bp.route("/kalkulator/edit-riwayat", methods=["PUT"])
+@jwt_required()
+def editRiwayat():
+    return edit_riwayat()
+
+
+@kalkulator_bp.route("/kalkulator/delete-riwayat", methods=["DELETE"])
+@jwt_required()
+def deleteRiwayat():
+    return delete_riwayat()
+    
+@kalkulator_bp.route("/kalkulator/update", methods=["PUT"])
+@jwt_required()
+def update():
+    return update_kalkulator()
