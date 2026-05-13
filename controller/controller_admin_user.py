@@ -10,10 +10,23 @@ def set_db(database):
     users_collection = db['users']
 
 
-def get_all_users():
-    users = list(users_collection.find())
+def get_all_users(search=None):
+
+    query = {}
+
+    if search:
+        query = {
+            "$or": [
+                {"nama": {"$regex": search, "$options": "i"}},
+                {"phone": {"$regex": search, "$options": "i"}}
+            ]
+        }
+
+    users = list(users_collection.find(query))
+
     for u in users:
         u['_id'] = str(u['_id'])
+
     return users
 
 
@@ -39,7 +52,7 @@ def update_user(id, data):
         {'_id': ObjectId(id)},
         {'$set': {
             "nama": data['nama'],
-            "email": data['email'],
+            "phone": data['phone'],
             "role": data['role']
         }}
     )

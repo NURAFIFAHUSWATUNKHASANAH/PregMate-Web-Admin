@@ -74,6 +74,38 @@
                     </div>
                 </div>
 
+                <!-- TARIK NAFAS -->
+<div class="form-group">
+    <label>Durasi Tarik Nafas (detik)</label>
+    <div class="input-icon">
+        <i class="fas fa-lungs"></i>
+        <input 
+            type="number" 
+            name="inhale_duration" 
+            class="form-control" 
+            value="{{ session.inhale_duration or 4 }}"
+            min="1"
+            required
+        >
+    </div>
+</div>
+
+<!-- HEMBUS NAFAS -->
+<div class="form-group">
+    <label>Durasi Hembus Nafas (detik)</label>
+    <div class="input-icon">
+        <i class="fas fa-wind"></i>
+        <input 
+            type="number" 
+            name="exhale_duration" 
+            class="form-control" 
+            value="{{ session.exhale_duration or 4 }}"
+            min="1"
+            required
+        >
+    </div>
+</div>
+
                 <!-- ACTION -->
                 <div class="form-actions">
                     

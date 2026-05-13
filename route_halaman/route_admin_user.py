@@ -5,9 +5,15 @@ admin_user = Blueprint('admin_user', __name__, template_folder='../templates/use
 
 @admin_user.route('/admin/user')
 def index():
-    users = controller.get_all_users()
-    return render_template('user/index.html', users=users)
 
+    search = request.args.get('search', '')
+
+    users = controller.get_all_users(search)
+
+    return render_template(
+        'user/index.html',
+        users=users
+    )
 
 @admin_user.route('/admin/user/create', methods=['GET', 'POST'])
 def create():

@@ -7,6 +7,6 @@ histori_user_bp = Blueprint("histori_user_bp", __name__)
 def histori_user_page():
     return get_all_user_logs()
 
-@histori_user_bp.route("/admin/histori_user/delete/<log_id>", methods=["POST"])
+@histori_user_bp.route("/admin/histori_user/delete/<log_id>")
 def delete_log(log_id):
     return delete_log_by_id(log_id)

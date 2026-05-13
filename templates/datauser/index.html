@@ -17,7 +17,7 @@
         <tr>
           <th>No</th>
           <th>Nama</th>
-          <th>Email</th>
+          <th>Nomor Whatsapp</th>
           <th>Aksi</th>
         </tr>
       </thead>
@@ -26,7 +26,7 @@
         <tr>
           <td>{{ loop.index }}</td>
           <td>{{ user.nama }}</td>
-          <td>{{ user.email }}</td>
+          <td>{{ user.phone }}</td>
           <td class="action-buttons">
             <a href="{{ url_for('datauser.user_edit', id=user._id) }}" class="btn btn-edit">Edit</a>
             <form action="{{ url_for('datauser.user_delete', id=user._id) }}" method="post" class="d-inline delete-form">

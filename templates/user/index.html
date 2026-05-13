@@ -30,7 +30,7 @@
                 type="text" 
                 name="search"
                 class="search-input" 
-                placeholder="Cari nama atau email..." 
+                placeholder="Cari nama atau Nomor Whatsapp..." 
                 value="{{ request.args.get('search','') }}"
                 autocomplete="off"
             >
@@ -52,7 +52,7 @@
             <thead>
                 <tr>
                     <th>Nama Pengguna</th>
-                    <th>Alamat Email</th>
+                    <th>Nomor WhatsApp</th>
                     <th>Peran / Role</th>
                     <th style="text-align:center;">Aksi</th>
                 </tr>
@@ -63,7 +63,7 @@
                     <tr>
                         <!-- data-label digunakan oleh CSS untuk tampilan mobile -->
                         <td data-label="Nama">{{ user.nama }}</td>
-                        <td data-label="Email">{{ user.email }}</td>
+                        <td data-label="Nomor WhatsApp">{{ user.phone }}</td>
                         <td data-label="Role">
                             <span class="badge 
                                 {% if user.role == 'ibu' %}badge-ibu

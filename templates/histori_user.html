@@ -3,100 +3,195 @@
 {% block title %}Histori Aktivitas User{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/logs.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
 {% endblock %}
 
 {% block content %}
-<div class="logs-container">
+<div class="user-container">
 
-  <div class="logs-header-wrapper">
-    
-    <div class="logs-title-group">
-      <i class="fas fa-history"></i>
-      <div>
-        <h2>Histori Aktivitas User</h2>
-        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
-          Pantau log aktivitas sistem secara real-time
-        </p>
-      </div>
+    <!-- HEADER -->
+    <div class="user-header-wrapper">
+
+        <!-- TITLE -->
+        <div class="user-title-group">
+
+            <i class="fas fa-history"></i>
+
+            <div>
+
+                <h2>Histori Aktivitas User</h2>
+
+                <p class="subtitle">
+                    Pantau seluruh aktivitas pengguna sistem PregMate
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- SEARCH -->
+        <form class="search-form" onsubmit="return false;">
+
+            <input 
+                type="text"
+                id="customSearch"
+                class="search-input"
+                placeholder="Cari histori aktivitas..."
+                autocomplete="off"
+            >
+
+            <button type="button" class="btn-search">
+                <i class="fas fa-search"></i>
+            </button>
+
+        </form>
+
     </div>
 
-    <!-- SEARCH STYLE SEPERTI ARTIKEL -->
-    <form class="search-form" onsubmit="return false;">
-      <input type="text"
-             id="customSearch"
-             class="search-input"
-             placeholder="Cari histori aktivitas...">
-      <button type="button" class="btn-search">
-        <i class="fas fa-search"></i>
-      </button>
-    </form>
+    <!-- TABLE -->
+    <div class="table-responsive">
 
-  </div>
+        <table id="logTable" class="user-table">
 
-  <div class="table-responsive">
-    <table id="logTable" class="display nowrap">
-      <thead>
-        <tr>
-          <th>Waktu</th>
-          <th>User ID</th>
-          <th>Nama User</th>
-          <th>Aksi</th>
-          <th>Status</th>
-          <th>Keterangan</th>
-          <th style="text-align: center;">Hapus</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for log in logs %}
-        <tr>
-          <td>
-            <span style="font-weight: 600;">
-              {{ log['timestamp'].strftime('%Y-%m-%d') }}
-            </span><br>
-            <small class="text-muted">
-              {{ log['timestamp'].strftime('%H:%M:%S') }}
-            </small>
-          </td>
+            <thead>
 
-          <td>
-            <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px;">
-              {{ log['user_id'] }}
-            </code>
-          </td>
+                <tr>
 
-          <td>{{ log['user_name'] or 'Guest' }}</td>
+                    <th>Waktu</th>
 
-          <td><strong>{{ log['action'] }}</strong></td>
+                    <th>User</th>
 
-          <td>
-            <span class="status-badge {{ 'status-success' if log['status']|lower == 'success' else 'status-failed' }}">
-              {{ log['status'] }}
-            </span>
-          </td>
+                    <th>Aktivitas</th>
 
-          <td style="color: var(--text-muted); font-size: 0.8rem;">
-            {{ log['keterangan'] or '-' }}
-          </td>
+                    <th>Status</th>
 
-          <td style="text-align: center;">
-            <form method="POST">
-              <button type="button"
-                      class="btn-delete-log btn-hapus"
-                      data-url="{{ url_for('histori_user_bp.delete_log', log_id=log['_id']) }}"
-                      data-nama="Log {{ log['action'] }}"
-                      title="Hapus Log">
-                <i class="fas fa-trash-can"></i>
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+                    <th>Keterangan</th>
+
+                    <th style="text-align:center;">Aksi</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for log in logs %}
+
+                <tr>
+
+                    <!-- WAKTU -->
+                    <td data-label="Waktu">
+
+                        <strong>
+                            {{ log['timestamp'].strftime('%Y-%m-%d') }}
+                        </strong>
+
+                        <br>
+
+                        <small style="color:#64748b;">
+                            {{ log['timestamp'].strftime('%H:%M:%S') }}
+                        </small>
+
+                    </td>
+
+                    <!-- USER -->
+                    <td data-label="User">
+
+                        <div style="display:flex; flex-direction:column;">
+
+                            <strong>
+                                {{ log['user_name'] or 'Guest' }}
+                            </strong>
+
+                            <small style="color:#64748b;">
+                                {{ log['user_id'] }}
+                            </small>
+
+                        </div>
+
+                    </td>
+
+                    <!-- AKTIVITAS -->
+                    <td data-label="Aktivitas">
+
+                        {% if log['action']|lower == 'login' %}
+
+                            <span class="badge badge-ibu">
+                                {{ log['action'] }}
+                            </span>
+
+                        {% elif log['action']|lower == 'logout' %}
+
+                            <span class="badge badge-pendamping">
+                                {{ log['action'] }}
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge badge-ibu">
+                                {{ log['action'] }}
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <!-- STATUS -->
+                    <td data-label="Status">
+
+                        {% if log['status']|lower == 'success' %}
+
+                            <span class="badge badge-ibu">
+                                Success
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge badge-pendamping">
+                                Failed
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <!-- KETERANGAN -->
+                    <td data-label="Keterangan">
+
+                        {{ log['keterangan'] or '-' }}
+
+                    </td>
+
+                    <!-- DELETE -->
+                    <td data-label="Aksi">
+
+                        <div class="user-action-buttons">
+
+                            <a href="#"
+                               class="btn-action btn-delete btn-hapus"
+                               data-url="{{ url_for('histori_user_bp.delete_log', log_id=log['_id']) }}"
+                               data-nama="Log {{ log['action'] }}"
+                               title="Hapus Log">
+
+                                <i class="fas fa-trash"></i>
+
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
 
 </div>
 {% endblock %}
@@ -104,35 +199,58 @@
 {% block extra_js %}
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
 <script src="{{ url_for('static', filename='js/allert.js') }}"></script>
 
 <script>
-  $(document).ready(function () {
+
+$(document).ready(function () {
 
     const table = $('#logTable').DataTable({
-      responsive: true,
-      pageLength: 10,
-      lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Semua"]],
-      order: [[0, "desc"]],
-      searching: false, // matikan search default
-      language: {
-        lengthMenu: "_MENU_ data per halaman",
-        info: "Menampilkan _START_ - _END_ dari _TOTAL_ log",
-        paginate: {
-          next: "›",
-          previous: "‹"
-        },
-        zeroRecords: "Tidak ada log aktivitas ditemukan."
-      }
+
+        responsive: true,
+
+        pageLength: 10,
+
+        lengthMenu: [
+            [10, 25, 50, -1],
+            [10, 25, 50, "Semua"]
+        ],
+
+        order: [[0, "desc"]],
+
+        searching: false,
+
+        language: {
+
+            lengthMenu: "_MENU_ data per halaman",
+
+            info: "Menampilkan _START_ - _END_ dari _TOTAL_ log",
+
+            emptyTable: "Belum ada histori aktivitas.",
+
+            zeroRecords: "Data tidak ditemukan.",
+
+            paginate: {
+                next: "›",
+                previous: "‹"
+            }
+
+        }
+
     });
 
-    // Custom Search
+    // CUSTOM SEARCH
     $('#customSearch').on('keyup', function () {
-      table.search(this.value).draw();
+
+        table.search(this.value).draw();
+
     });
 
-  });
+});
+
 </script>
 
 {% endblock %}

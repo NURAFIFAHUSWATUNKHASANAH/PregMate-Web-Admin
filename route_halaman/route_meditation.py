@@ -27,7 +27,10 @@ def get_meditation_sessions():
                 "id": str(d["_id"]),
                 "title": d.get("title"),
                 "description": d.get("description"),
-                "duration": d.get("duration", 60)
+                "duration": d.get("duration", 60),
+                    # ✅ TAMBAHAN
+                "inhale_duration": d.get("inhale_duration", 4),
+                "exhale_duration": d.get("exhale_duration", 4)
             })
 
         return jsonify(result)
@@ -72,7 +75,9 @@ def create():
         data = {
             "title": request.form["title"],
             "description": request.form["description"],
-            "duration": int(request.form.get("duration", 60))
+            "duration": int(request.form.get("duration", 60)),
+                "inhale_duration": int(request.form.get("inhale_duration", 4)),
+    "exhale_duration": int(request.form.get("exhale_duration", 4)),
         }
         MeditationSession.create(data)
         return redirect(url_for("meditation_bp.index"))  # ✅ FIX
@@ -92,7 +97,9 @@ def edit(id):
             {"$set": {
                 "title": request.form["title"],
                 "description": request.form["description"],
-                "duration": int(request.form.get("duration", 60))
+                "duration": int(request.form.get("duration", 60)),
+                    "inhale_duration": int(request.form.get("inhale_duration", 4)),
+    "exhale_duration": int(request.form.get("exhale_duration", 4)),
             }}
         )
         return redirect(url_for("meditation_bp.index"))  # ✅ FIX

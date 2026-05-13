@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class="form-container">
-    
+
     <div class="form-wrapper">
 
         <!-- HEADER -->
@@ -32,13 +32,8 @@
                     <label>Judul</label>
                     <div class="input-icon">
                         <i class="fas fa-heading"></i>
-                        <input 
-                            type="text" 
-                            name="title" 
-                            class="form-control" 
-                            placeholder="Masukkan judul meditasi..."
-                            required
-                        >
+                        <input type="text" name="title" class="form-control" placeholder="Masukkan judul meditasi..."
+                            required>
                     </div>
                 </div>
 
@@ -47,13 +42,8 @@
                     <label>Deskripsi</label>
                     <div class="input-icon">
                         <i class="fas fa-align-left"></i>
-                        <input 
-                            type="text" 
-                            name="description" 
-                            class="form-control" 
-                            placeholder="Masukkan deskripsi..."
-                            required
-                        >
+                        <input type="text" name="description" class="form-control" placeholder="Masukkan deskripsi..."
+                            required>
                     </div>
                 </div>
 
@@ -62,19 +52,31 @@
                     <label>Durasi (detik)</label>
                     <div class="input-icon">
                         <i class="fas fa-clock"></i>
-                        <input 
-                            type="number" 
-                            name="duration" 
-                            class="form-control" 
-                            value="60"
-                            min="1"
-                        >
+                        <input type="number" name="duration" class="form-control" value="60" min="1">
+                    </div>
+                </div>
+
+                <!-- TARIK NAFAS -->
+                <div class="form-group">
+                    <label>Durasi Tarik Nafas (detik)</label>
+                    <div class="input-icon">
+                        <i class="fas fa-lungs"></i>
+                        <input type="number" name="inhale_duration" class="form-control" value="4" min="1" required>
+                    </div>
+                </div>
+
+                <!-- HEMBUS NAFAS -->
+                <div class="form-group">
+                    <label>Durasi Hembus Nafas (detik)</label>
+                    <div class="input-icon">
+                        <i class="fas fa-wind"></i>
+                        <input type="number" name="exhale_duration" class="form-control" value="4" min="1" required>
                     </div>
                 </div>
 
                 <!-- ACTION -->
                 <div class="form-actions">
-                    
+
                     <button type="submit" class="btn-submit">
                         Simpan
                     </button>

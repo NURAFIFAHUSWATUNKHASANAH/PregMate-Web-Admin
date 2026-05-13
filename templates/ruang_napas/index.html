@@ -9,10 +9,10 @@
 
 {% block content %}
 <div class="user-container">
-    
+
     <!-- HEADER -->
     <div class="user-header-wrapper">
-        
+
         <div class="user-title-group">
             <i class="fas fa-spa"></i>
             <div>
@@ -23,13 +23,8 @@
 
         <!-- SEARCH -->
         <form class="search-form" method="GET">
-            <input 
-                type="text" 
-                name="search"
-                class="search-input" 
-                placeholder="Cari judul meditasi..."
-                value="{{ request.args.get('search','') }}"
-            >
+            <input type="text" name="search" class="search-input" placeholder="Cari judul meditasi..."
+                value="{{ request.args.get('search','') }}">
             <button type="submit" class="btn-search">
                 <i class="fas fa-search"></i>
             </button>
@@ -43,61 +38,120 @@
     </div>
 
     <!-- TABLE -->
-    <div class="table-responsive">
-        <table class="user-table">
-            <thead>
+<div class="table-responsive">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Judul</th>
+                <th>Deskripsi</th>
+                <th>Total Durasi</th>
+                <th>Tarik Nafas</th>
+                <th>Hembus Nafas</th>
+                <th style="text-align:center;">Aksi</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% if sessions %}
+
+                {% for s in sessions %}
                 <tr>
-                    <th>Judul</th>
-                    <th>Deskripsi</th>
-                    <th>Durasi (detik)</th>
-                    <th style="text-align:center;">Aksi</th>
+
+                    <!-- JUDUL -->
+                    <td data-label="Judul">
+                        {{ s.title }}
+                    </td>
+
+                    <!-- DESKRIPSI -->
+                    <td data-label="Deskripsi">
+                        {{ s.description }}
+                    </td>
+
+                    <!-- TOTAL DURASI -->
+                    <td data-label="Total Durasi">
+                        {{ s.duration }} detik
+                    </td>
+
+                    <!-- TARIK -->
+                    <td data-label="Tarik Nafas">
+                        <span class="badge badge-ibu">
+                            {{ s.inhale_duration or 4 }} dtk
+                        </span>
+                    </td>
+
+                    <!-- HEMBUS -->
+                    <td data-label="Hembus Nafas">
+                        <span class="badge badge-pendamping">
+                            {{ s.exhale_duration or 4 }} dtk
+                        </span>
+                    </td>
+
+                    <!-- AKSI -->
+                    <td data-label="Aksi">
+
+                        <div class="user-action-buttons">
+
+                            <!-- EDIT -->
+                            <a href="{{ url_for('meditation_bp.edit', id=s._id) }}" 
+                               class="btn-action btn-edit">
+
+                                <i class="fas fa-pen-to-square"></i>
+
+                            </a>
+
+                            <!-- DELETE -->
+                            <a href="#" 
+                               class="btn-action btn-delete btn-hapus"
+                               data-url="{{ url_for('meditation_bp.delete', id=s._id) }}"
+                               data-nama="{{ s.title }}">
+
+                                <i class="fas fa-trash"></i>
+
+                            </a>
+
+                        </div>
+
+                    </td>
+
                 </tr>
-            </thead>
-            <tbody>
-                {% if sessions %}
-                    {% for s in sessions %}
-                    <tr>
-                        <td data-label="Judul">{{ s.title }}</td>
-                        <td data-label="Deskripsi">{{ s.description }}</td>
-                        <td data-label="Durasi">{{ s.duration }}</td>
+                {% endfor %}
 
-                        <td data-label="Aksi">
-                            <div class="user-action-buttons">
-                                
-                                <!-- EDIT -->
-<a href="{{ url_for('meditation_bp.edit', id=s._id) }}" 
-   class="btn-action btn-edit">
-                                    <i class="fas fa-pen-to-square"></i>
-                                </a>
+            {% else %}
 
-                                <!-- DELETE -->
+                <!-- EMPTY -->
+                <tr>
 
-<a href="#" 
-   class="btn-action btn-delete btn-hapus"
-   data-url="{{ url_for('meditation_bp.delete', id=s._id) }}"
-   data-nama="{{ s.title }}">
-    <i class="fas fa-trash"></i>
-</a>
+                    <td colspan="6" class="empty-state">
 
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="4" class="empty-state">
-                            <div class="empty-content">
-                                <i class="fas fa-spa fa-3x"></i>
-                                <h3>Belum Ada Data</h3>
-                                <p>Sesi meditasi belum tersedia.</p>
-                                <a href="{{ url_for('meditation.index') }}" class="btn-refresh">Refresh</a>
-                            </div>
-                        </td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </div>
+                        <div class="empty-content">
+
+                            <i class="fas fa-spa fa-3x"></i>
+
+                            <h3>Belum Ada Data</h3>
+
+                            <p>
+                                Sesi meditasi belum tersedia.
+                            </p>
+
+                            <a href="{{ url_for('meditation_bp.index') }}" 
+                               class="btn-refresh">
+
+                                Refresh
+
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% endif %}
+
+        </tbody>
+    </table>
+</div>
 
 </div>
 {% endblock %}

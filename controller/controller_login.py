@@ -12,9 +12,12 @@ GOOGLE_CLIENT_ID = '945236677336-pl4ua4gp1p388u0131uouanod6av77gp.apps.googleuse
 
 
 # ======== SET DATABASE ========
+userlog_model = None
+
 def set_db(database):
-    global db
+    global db, userlog_model
     db = database
+    userlog_model = UserLog(database)
 
 def format_phone(phone):
     if phone.startswith("08"):
@@ -57,6 +60,14 @@ def login_user():
         expires_delta=timedelta(hours=1)
     )
 
+    # ===== LOG LOGIN =====
+    userlog_model.log_activity(
+        user_id=str(user["_id"]),
+        action="Login",
+        status="success",
+        keterangan=f"{user.get('nama')} berhasil login"
+    )
+    
     return jsonify({
         "success": True,
         "token": access_token,

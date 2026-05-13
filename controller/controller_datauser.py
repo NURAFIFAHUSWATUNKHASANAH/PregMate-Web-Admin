@@ -39,14 +39,14 @@ def user_detail(id):
 def user_create():
     data = request.get_json()
     nama = data.get("nama")
-    email = data.get("email")
+    phone = data.get("phone")
     password = data.get("password")
     foto = data.get("foto")
 
-    if not nama or not email or not password:
+    if not nama or not phone or not password:
         return jsonify({"message": "Data tidak lengkap"}), 400
 
-    user_id = User.create(nama, email, password, foto)
+    user_id = User.create(nama, phone, password, foto)
     return jsonify({"message": "User created", "user_id": str(user_id)}), 201
 
 @jwt_required()
