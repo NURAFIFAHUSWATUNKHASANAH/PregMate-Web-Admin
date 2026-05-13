@@ -42,9 +42,10 @@
                 <input type="text" name="steps[]" class="form-control step-input" placeholder="Langkah 1" required>
             </div>
 
-            <button type="button" onclick="addStep()" class="btn btn-sm btn-primary mt-2">
-                + Tambah Field
-            </button>
+<button type="button" onclick="addStep()" class="btn-add-field">
+    <i class="fas fa-plus"></i>
+    Tambah Field
+</button>
         </div>
 
         <!-- BUTTON -->
@@ -73,11 +74,24 @@ function addStep() {
     const container = document.getElementById("steps-container");
 
     const wrapper = document.createElement("div");
-    wrapper.className = "d-flex gap-2 mt-2";
+    wrapper.className = "step-field-wrapper";
 
     wrapper.innerHTML = `
-        <input type="text" name="steps[]" class="form-control step-input" placeholder="Langkah ${stepCount}" required>
-        <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">x</button>
+        <input 
+            type="text" 
+            name="steps[]" 
+            class="form-control step-input" 
+            placeholder="Langkah ${stepCount}" 
+            required
+        >
+
+        <button 
+            type="button" 
+            class="btn-remove-field"
+            onclick="this.parentElement.remove()"
+        >
+            <i class="fas fa-times"></i>
+        </button>
     `;
 
     container.appendChild(wrapper);

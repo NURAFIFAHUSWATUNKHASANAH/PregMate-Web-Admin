@@ -456,3 +456,81 @@
         font-size: 1.5rem;
     }
 }
+
+/* ============================================================
+   DYNAMIC FIELD BUTTONS
+   ============================================================ */
+
+/* Wrapper field langkah */
+.step-field-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+/* Tombol tambah field */
+.btn-add-field {
+    margin-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #0C2D57, #17467f);
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 15px rgba(12, 45, 87, 0.15);
+}
+
+.btn-add-field:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(12, 45, 87, 0.25);
+    opacity: 0.95;
+}
+
+/* Tombol hapus field */
+.btn-remove-field {
+    min-width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 12px;
+    background: #fff1f2;
+    color: #e11d48;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.btn-remove-field:hover {
+    background: #e11d48;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+
+    .step-field-wrapper {
+        gap: 8px;
+    }
+
+    .btn-remove-field {
+        min-width: 40px;
+        height: 40px;
+        border-radius: 10px;
+    }
+
+    .btn-add-field {
+        width: 100%;
+        justify-content: center;
+    }
+}

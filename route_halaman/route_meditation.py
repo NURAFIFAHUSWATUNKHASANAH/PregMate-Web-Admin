@@ -45,8 +45,23 @@ def get_meditation_sessions():
 # ==============================
 @meditation_bp.route("/admin/meditation")
 def index():
-    sessions = MeditationSession.find_all()
-    return render_template("ruang_napas/index.html", sessions=sessions)
+
+    search = request.args.get("search", "").strip()
+
+    if search:
+        sessions = MeditationSession.db["meditation_sessions"].find({
+            "title": {
+                "$regex": search,
+                "$options": "i"
+            }
+        })
+    else:
+        sessions = MeditationSession.find_all()
+
+    return render_template(
+        "ruang_napas/index.html",
+        sessions=sessions
+    )
 
 # ==============================
 # CREATE
