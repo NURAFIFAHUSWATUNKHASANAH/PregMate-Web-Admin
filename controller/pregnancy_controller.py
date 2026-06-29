@@ -435,13 +435,52 @@ def pregnancy_history_with_detail():
         user_id = get_jwt_identity()
 
         # ======================
+        # CEK USER LOGIN
+        # ======================
+        user = User.find_by_id(user_id)
+
+        if not user:
+            return jsonify({
+                "status": "error",
+                "message": "User tidak ditemukan"
+            }), 404
+
+        # ======================
+        # TENTUKAN USER YANG DICARI
+        # ======================
+        if user.get("role") == "pendamping":
+
+            pasangan_id = user.get("partner_id")
+
+            if not pasangan_id:
+                return jsonify({
+                    "status": "error",
+                    "message": "Belum ada pasangan"
+                }), 400
+
+            user_id_to_query = pasangan_id
+
+        else:
+            user_id_to_query = user_id
+
+        print("==============")
+        print("ROLE :", user.get("role"))
+        print("LOGIN USER :", user_id)
+        print("QUERY USER :", user_id_to_query)
+        print("==============")
+
+        # ======================
         # AMBIL DATA KEHAMILAN
         # ======================
         data = list(
             DataKehamilan.db["data_kehamilan"]
-            .find({"user_id": ObjectId(user_id)})
+            .find({
+                "user_id": ObjectId(user_id_to_query)
+            })
             .sort("kehamilan_ke", -1)
         )
+
+        print("TOTAL KEHAMILAN :", len(data))
 
         result = []
 
@@ -450,22 +489,30 @@ def pregnancy_history_with_detail():
             kehamilan_id = str(d["_id"])
 
             # ======================
-            # AMBIL RIWAYAT BERAT BADAN
+            # RIWAYAT BERAT BADAN
             # ======================
             bb_data = list(
-                DataKehamilan.db["berat_badan"].find({
-                    "user_id": ObjectId(user_id),
+                DataKehamilan.db["berat_badan"]
+                .find({
+                    "user_id": ObjectId(user_id_to_query),
                     "kehamilan_id": ObjectId(kehamilan_id)
-                }).sort("tanggal", -1)
+                })
+                .sort("tanggal", -1)
             )
 
             riwayat_bb = []
 
             for b in bb_data:
+
                 riwayat_bb.append({
                     "id": str(b["_id"]),
-                    "berat_badan": float(b.get("berat_badan") or 0),
-                    "tanggal": b["tanggal"].strftime("%d-%m-%Y") if b.get("tanggal") else None
+                    "berat_badan": float(
+                        b.get("berat_badan") or 0
+                    ),
+                    "tanggal":
+                        b["tanggal"].strftime("%d-%m-%Y")
+                        if b.get("tanggal")
+                        else None
                 })
 
             # ======================
@@ -474,16 +521,28 @@ def pregnancy_history_with_detail():
             result.append({
                 "id": kehamilan_id,
                 "kehamilan_ke": d.get("kehamilan_ke", 0),
+
                 "hpht": d.get("hpht"),
 
-                # 🔥 HPL FORMAT DD-MM-YYYY
-                "hpl": format_ddmmyyyy(d.get("hpl")),
+                "hpl": format_ddmmyyyy(
+                    d.get("hpl")
+                ),
 
-                "status": d.get("status", "active"),
-                "start_date": d.get("start_date").isoformat() if d.get("start_date") else None,
-                "end_date": d.get("end_date").isoformat() if d.get("end_date") else None,
+                "status": d.get(
+                    "status",
+                    "active"
+                ),
 
-                # 🔥 RIWAYAT BERAT BADAN
+                "start_date":
+                    d.get("start_date").isoformat()
+                    if d.get("start_date")
+                    else None,
+
+                "end_date":
+                    d.get("end_date").isoformat()
+                    if d.get("end_date")
+                    else None,
+
                 "riwayat_bb": riwayat_bb
             })
 
@@ -493,8 +552,13 @@ def pregnancy_history_with_detail():
         }), 200
 
     except Exception as e:
-        print("ERROR pregnancy_history_with_detail:", e)
+
+        print("================================")
+        print("ERROR pregnancy_history_with_detail")
+        print(e)
+        print("================================")
+
         return jsonify({
             "status": "error",
-            "message": "Gagal mengambil data"
+            "message": str(e)
         }), 500

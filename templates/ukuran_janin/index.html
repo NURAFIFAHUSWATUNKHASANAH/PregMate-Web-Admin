@@ -1,0 +1,104 @@
+{% extends 'layouts/layout.html' %}
+
+{% block title %}Kelola Ukuran Janin | AdminPanel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/artikel.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="artikel-container">
+
+    <div class="artikel-header-wrapper">
+        <div class="artikel-title-group">
+            <i class="fas fa-baby"></i>
+            <div>
+                <h2>Kelola Ukuran Janin</h2>
+                <p class="subtitle">Data perkembangan janin berdasarkan usia kehamilan</p>
+            </div>
+        </div>
+
+        <form class="search-form" method="GET" action="{{ url_for('ukuranjanin_bp.index') }}">
+            <input
+                type="text"
+                name="search"
+                class="search-input"
+                placeholder="Cari minggu atau buah..."
+                value="{{ search_query or '' }}"
+            >
+            <button class="btn-search" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+
+        <a href="{{ url_for('ukuranjanin_bp.create') }}" class="btn-add-modern">
+            <i class="fas fa-plus"></i>
+            <span>Tambah Data</span>
+        </a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="artikel-table">
+            <thead>
+                <tr>
+                    <th width="100">Gambar</th>
+                    <th width="80">Minggu</th>
+                    <th>Ilustrasi Buah</th>
+                    <th width="120">Panjang</th>
+                    <th width="120">Berat</th>
+                    <th>Deskripsi Perkembangan</th>
+                    <th width="150" style="text-align: center;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if data %}
+                    {% for item in data %}
+                    <tr>
+                        <td data-label="Gambar">
+                            {% if item.imageUrl %}
+                                <img src="{{ item.imageUrl }}" class="img-thumbnail-artikel" alt="janin">
+                            {% else %}
+                                <div style="width: 50px; height: 50px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; border-radius: 10px; color: #cbd5e1;">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td data-label="Minggu"><strong>Mg-{{ item.minggu }}</strong></td>
+                        <td data-label="Buah"><strong>{{ item.buah }}</strong></td>
+                        <td data-label="Panjang">{{ item.panjang }}</td>
+                        <td data-label="Berat">{{ item.berat }}</td>
+                        <td data-label="Deskripsi" class="artikel-excerpt">
+                            {{ item.deskripsi[:80] }}...
+                        </td>
+                        <td data-label="Aksi">
+                            <div class="artikel-action-buttons">
+                                <a href="{{ url_for('ukuranjanin_bp.edit', id=item._id) }}" class="btn-action btn-edit" title="Edit">
+                                    <i class="fas fa-pen-to-square"></i>
+                                </a>
+                                <a href="#" 
+                                   class="btn-action btn-delete btn-hapus"
+                                   data-url="{{ url_for('ukuranjanin_bp.delete', id=item._id) }}"
+                                   data-nama="Minggu {{ item.minggu }} ({{ item.buah }})"
+                                   title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <div class="empty-content">
+                                <i class="fas fa-folder-open fa-3x"></i>
+                                <p>Data ukuran janin tidak ditemukan</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

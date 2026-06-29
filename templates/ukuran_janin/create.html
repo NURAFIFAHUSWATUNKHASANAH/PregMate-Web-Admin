@@ -1,0 +1,88 @@
+{% extends 'layouts/layout.html' %}
+
+{% block title %}Tambah Ukuran Janin | AdminPanel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/artikel.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-wrapper">
+        
+        <div class="form-header">
+            <div class="form-title-group">
+                <i class="fas fa-baby"></i>
+                <div>
+                    <h2>Tambah Ukuran Janin</h2>
+                    <p class="subtitle">Buat metrik perkembangan janin baru berdasarkan minggu kehamilan</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <form action="{{ url_for('ukuranjanin_bp.create') }}" method="POST" enctype="multipart/form-data">
+                
+                <div class="form-group">
+                    <label>Minggu Kehamilan</label>
+                    <div class="input-icon">
+                        <i class="fas fa-calendar-week"></i>
+                        <input type="number" name="minggu" class="form-control" placeholder="Contoh: 8" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Ilustrasi Buah / Sayur</label>
+                    <div class="input-icon">
+                        <i class="fas fa-apple-whole"></i>
+                        <input type="text" name="buah" class="form-control" placeholder="Contoh: Buah Raspberry" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Estimasi Panjang (cm / mm)</label>
+                    <div class="input-icon">
+                        <i class="fas fa-ruler-horizontal"></i>
+                        <input type="text" name="panjang" class="form-control" placeholder="Contoh: 1.6 cm" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Estimasi Berat (gram)</label>
+                    <div class="input-icon">
+                        <i class="fas fa-weight-scale"></i>
+                        <input type="text" name="berat" class="form-control" placeholder="Contoh: 1 gram" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Deskripsi Perkembangan</label>
+                    <div class="input-icon">
+                        <i class="fas fa-align-left" style="top: 20px; transform: none;"></i> 
+                        <textarea name="deskripsi" rows="6" class="form-control" placeholder="Tuliskan detail perkembangan organ janin di minggu ini..." required style="padding-top: 15px;"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Gambar Ilustrasi Janin</label>
+                    <div class="input-icon">
+                        <i class="fas fa-image"></i>
+                        <input type="file" name="image" accept="image/*" class="form-control" style="padding-top: 12px;">
+                    </div>
+                    <small style="color: var(--text-muted); margin-top: 8px; display: block; margin-left: 5px;">
+                        <i class="fas fa-info-circle"></i> Format: JPG, PNG, atau WEBP.
+                    </small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Simpan</button>
+                    <a href="{{ url_for('ukuranjanin_bp.index') }}" class="btn-cancel">Batal</a>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

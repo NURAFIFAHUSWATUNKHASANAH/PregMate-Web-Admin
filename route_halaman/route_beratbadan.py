@@ -121,9 +121,6 @@ def get_riwayat_berat_badan_route():
     try:
         user_id = str(get_jwt_identity())
 
-        # ======================
-        # CEK ROLE
-        # ======================
         try:
             user = User.find_by_id(user_id)
         except:
@@ -135,26 +132,27 @@ def get_riwayat_berat_badan_route():
             if user.get("partner_id"):
                 target_user_id = str(user["partner_id"])
 
-        # ======================
-        # DATA KEHAMILAN AKTIF
-        # ======================
         kehamilan = DataKehamilan.find_by_user(target_user_id)
 
         if not kehamilan:
             return jsonify([])
 
-        hpht = datetime.strptime(kehamilan["hpht"], "%Y-%m-%d")
-        kehamilan_id = kehamilan.get("_id")
+        hpht = datetime.strptime(
+            kehamilan["hpht"],
+            "%Y-%m-%d"
+        )
 
-        # ✅ FIX: pakai model
-        bb_list = BeratBadan.find_by_user(target_user_id, kehamilan_id)
+        kehamilan_id = kehamilan["_id"]
+
+        bb_list = BeratBadan.find_by_user(
+            target_user_id,
+            kehamilan_id
+        )
 
         minggu_map = {}
 
-        # ======================
-        # DATA NORMAL
-        # ======================
         for d in bb_list:
+
             if not isinstance(d, dict):
                 continue
 
@@ -163,50 +161,33 @@ def get_riwayat_berat_badan_route():
             if not isinstance(tgl, datetime):
                 continue
 
-            minggu = get_minggu_kehamilan(tgl, hpht)
+            minggu = get_minggu_kehamilan(
+                tgl,
+                hpht
+            )
 
             if minggu in minggu_map:
                 continue
 
             minggu_map[minggu] = {
-                "_id": str(d.get("_id")),
-                "berat_badan": float(d.get("berat_badan") or 0),
+                "_id": str(d["_id"]),
+                "berat_badan": float(d["berat_badan"]),
                 "tanggal": tgl.strftime("%Y-%m-%d")
             }
 
-        # ======================
-        # SEED KEHAMILAN
-        # ======================
-        try:
-            seed_bb = float(kehamilan.get("berat_badan") or 0)
-            created = kehamilan.get("start_date")
-
-            if isinstance(created, datetime):
-                minggu_seed = get_minggu_kehamilan(created, hpht)
-
-                if minggu_seed not in minggu_map:
-                    minggu_map[minggu_seed] = {
-                        "berat_badan": seed_bb,
-                        "tanggal": created.strftime("%Y-%m-%d")
-                    }
-
-        except Exception as e:
-            print("Seed error:", e)
-
-        # ======================
-        # SORT
-        # ======================
         result = sorted(
-            list(minggu_map.values()),
-            key=lambda x: datetime.strptime(x["tanggal"], "%Y-%m-%d")
+            minggu_map.values(),
+            key=lambda x: datetime.strptime(
+                x["tanggal"],
+                "%Y-%m-%d"
+            )
         )
 
         return jsonify(result)
 
     except Exception as e:
-        print("🔥 ERROR GET BB:", str(e))
+        print("GET ERROR:", e)
         return jsonify([]), 200
-    
     
 # ======================
 # UPDATE

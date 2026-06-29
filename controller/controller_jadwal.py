@@ -56,12 +56,30 @@ def buat_jadwal():
     
 @jadwal_bp.route('/jadwal', methods=['GET'])
 def get_jadwal():
+
     user_id = request.args.get("user_id")
 
-    data = list(db.schedules.find({"user_id": user_id}))
+    # cari kehamilan aktif
+    kehamilan = db.data_kehamilan.find_one({
+        "user_id": ObjectId(user_id),
+        "status": "active"
+    })
+
+    if not kehamilan:
+        return jsonify([])
+
+    kehamilan_id = kehamilan["_id"]
+
+    data = list(
+        db.schedules.find({
+            "user_id": user_id,
+            "kehamilan_id": kehamilan_id
+        })
+    )
 
     for d in data:
         d["_id"] = str(d["_id"])
+        d["kehamilan_id"] = str(d["kehamilan_id"])
 
     return jsonify(data)
 

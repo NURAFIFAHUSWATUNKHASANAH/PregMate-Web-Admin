@@ -1,0 +1,99 @@
+{% extends 'layouts/layout.html' %}
+
+{% block title %}Edit Ukuran Janin | AdminPanel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/artikel.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-wrapper">
+
+        <div class="form-header">
+            <div class="form-title-group">
+                <i class="fas fa-file-pen"></i>
+                <div>
+                    <h2>Edit Ukuran Janin</h2>
+                    <p class="subtitle">Perbarui data metrik perkembangan dan ilustrasi janin</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-card">
+            <form action="{{ url_for('ukuranjanin_bp.edit', id=item._id) }}" method="POST" enctype="multipart/form-data">
+
+                <div class="form-group">
+                    <label>Minggu Kehamilan</label>
+                    <div class="input-icon">
+                        <i class="fas fa-calendar-week"></i>
+                        <input type="number" name="minggu" value="{{ item.minggu }}" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Ilustrasi Buah / Sayur</label>
+                    <div class="input-icon">
+                        <i class="fas fa-apple-whole"></i>
+                        <input type="text" name="buah" value="{{ item.buah }}" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Estimasi Panjang</label>
+                    <div class="input-icon">
+                        <i class="fas fa-ruler-horizontal"></i>
+                        <input type="text" name="panjang" value="{{ item.panjang }}" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Estimasi Berat</label>
+                    <div class="input-icon">
+                        <i class="fas fa-weight-scale"></i>
+                        <input type="text" name="berat" value="{{ item.berat }}" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Deskripsi Perkembangan</label>
+                    <div class="input-icon">
+                        <i class="fas fa-align-left" style="top: 20px; transform: none;"></i> 
+                        <textarea name="deskripsi" rows="6" class="form-control" required style="padding-top: 15px;">{{ item.deskripsi }}</textarea>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Gambar Saat Ini</label>
+                    {% if item.imageUrl %}
+                        <div class="current-image-wrapper" style="background: #f8fafc; padding: 15px; border-radius: 20px; border: 1.5px solid #e2e8f0;">
+                            <img src="{{ item.imageUrl }}" alt="Preview" class="img-preview" style="max-width: 150px; border-radius: 12px; display: block;">
+                        </div>
+                    {% else %}
+                        <div class="empty-image-state" style="padding: 20px; background: #f8fafc; border-radius: 15px; text-align: center; color: var(--text-muted); border: 1.5px dashed #e2e8f0;">
+                            <i class="fas fa-image" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">Tidak ada gambar terunggah</span>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Ganti Gambar Ilustrasi (Opsional)</label>
+                    <div class="input-icon">
+                        <i class="fas fa-cloud-arrow-up"></i>
+                        <input type="file" name="image" accept="image/*" class="form-control" style="padding-top: 12px;">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit">Update</button>
+                    <a href="{{ url_for('ukuranjanin_bp.index') }}" class="btn-cancel">Kembali</a>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

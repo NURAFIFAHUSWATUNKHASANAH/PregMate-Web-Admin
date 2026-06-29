@@ -86,6 +86,7 @@ from models.craving_model import Craving
 from route_halaman.route_kalkulator import kalkulator_bp
 from models.kalkulator_model import KalkulatorModel
 from route_halaman.route_tips_newborn import tips_bp
+from models.ukuranjanin_model import UkuranJaninModel
 
 set_userlog_db(db)
 # Set DB di controller dan model
@@ -110,6 +111,7 @@ Craving.set_db(db)
 KalkulatorModel.set_db(db)
 TasBersalinModel.set_db(db)
 TipsNewbornModel.set_db(db)
+UkuranJaninModel.set_db(db)
 
 
 # ============================== BLUEPRINT REGISTRASI ==============================
@@ -129,8 +131,10 @@ def register_blueprints():
     from route_halaman.route_informasi import informasi_bp
     from route_halaman.craving_route import craving_bp
     from route_halaman.tasbersalin_route import tasbersalin_bp
+    from route_halaman.route_ukuranjanin import ukuranjanin_bp
+    
+    app.register_blueprint(ukuranjanin_bp)
     app.register_blueprint(histori_user_bp)
-
     app.register_blueprint(forgot_password_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(artikel_bp, url_prefix='/api')
