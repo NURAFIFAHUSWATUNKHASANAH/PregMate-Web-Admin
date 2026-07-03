@@ -71,17 +71,31 @@
                 </div>
 
                 <!-- TYPE (WAJIB / OPTIONAL) -->
-                <div class="form-group">
-                    <label>Jenis Item</label>
-                    <div class="input-icon">
-                        <i class="fas fa-circle-info"></i>
-                        <select name="type" class="form-control" required>
-                            <option value="">-- Pilih Jenis --</option>
-                            <option value="wajib" {% if item.type == 'wajib' %}selected{% endif %}>Wajib</option>
-                            <option value="optional" {% if item.type == 'optional' %}selected{% endif %}>Optional</option>
-                        </select>
-                    </div>
-                </div>
+<!-- JENIS ITEM -->
+<div class="form-group">
+    <label>Jenis Item</label>
+    <div class="input-icon">
+        <i class="fas fa-list-check"></i>
+
+        <select name="type" class="form-control" required>
+            <option value="Penting"
+                {% if item.type == 'Penting' %}selected{% endif %}>
+                Penting
+            </option>
+
+            <option value="Disarankan"
+                {% if item.type == 'Disarankan' %}selected{% endif %}>
+                Disarankan
+            </option>
+
+            <option value="Pribadi"
+                {% if item.type == 'Pribadi' %}selected{% endif %}>
+                Pribadi
+            </option>
+        </select>
+
+    </div>
+</div>
 
                 <!-- ACTION -->
                 <div class="form-actions">

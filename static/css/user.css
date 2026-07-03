@@ -642,3 +642,29 @@
         flex-wrap: wrap;
     }
 }
+
+.badge-penting,
+.badge-disarankan,
+.badge-pribadi{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 14px;
+    border-radius:12px;
+    font-size:12px;
+    font-weight:700;
+    color:white;
+    white-space:nowrap;
+}
+
+.badge-penting{
+    background:#ef4444;
+}
+
+.badge-disarankan{
+    background:#3b82f6;
+}
+
+.badge-pribadi{
+    background:#8b5cf6;
+}

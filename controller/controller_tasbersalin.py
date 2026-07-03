@@ -35,7 +35,51 @@ def toggle_tas_bersalin():
     return jsonify({"status": "error"}), 500
 
 
-# ===================== GET USER (UPDATED + SAFE + CLEAN) =====================
+# ===================== DELETE ITEM (USER & ADMIN) =====================
+@jwt_required()
+def delete_tas_bersalin(id): # 'id' didapat dari variabel URL parameter 
+    data = request.get_json() or {}
+    kehamilan_id = data.get("kehamilan_id")
+
+    if not kehamilan_id:
+        return jsonify({"msg": "kehamilan_id diperlukan untuk menghapus item"}), 422
+
+    try:
+        k_id = ObjectId(kehamilan_id) if ObjectId.is_valid(kehamilan_id) else kehamilan_id
+        item_id = ObjectId(id) if ObjectId.is_valid(id) else id
+
+        # 1. Cek dulu apakah item ini ada di user_progress_tas dan berstatus 'is_custom'
+        user_item = TasBersalinModel.collection.find_one({"_id": item_id})
+
+        if user_item and user_item.get("is_custom") == True:
+            # Skenario A: Jika item buatan kustom user sendiri -> HAPUS PERMANEN
+            TasBersalinModel.delete_custom_item(id)
+            return jsonify({"status": "success", "msg": "Item custom berhasil dihapus"}), 200
+        else:
+            # Skenario B: Jika item bawaan ADMIN (tidak ada di koleksi progres atau tidak custom)
+            # Ambil detail nama & kategori dari data master terlebih dahulu
+            master_item = TasBersalinModel.master_collection.find_one({"_id": item_id})
+            
+            # Jika item_id ternyata adalah id progress bawaan yang di-upsert, cari cadangannya lewat nama
+            if not master_item and user_item:
+                name_item = user_item.get("name")
+                category_item = user_item.get("category")
+            elif master_item:
+                name_item = master_item.get("name")
+                category_item = master_item.get("category")
+            else:
+                return jsonify({"msg": "Item tidak ditemukan"}), 404
+
+            # Daftarkan flag 'is_hidden': True khusus kehamilan_id ini
+            TasBersalinModel.hide_item_for_user(k_id, name_item, category_item)
+            return jsonify({"status": "success", "msg": "Item rekomendasi disembunyikan"}), 200
+
+    except Exception as e:
+        print(f"❌ Error delete_tas_bersalin: {e}")
+        return jsonify({"status": "error", "msg": "Terjadi kesalahan internal"}), 500
+
+
+# ===================== GET USER (SINKRON DENGAN FITUR SEMBUNYI) =====================
 @jwt_required()
 def get_tas_bersalin():
     user_id = get_jwt_identity()
@@ -47,34 +91,107 @@ def get_tas_bersalin():
     try:
         k_id = ObjectId(kehamilan_id) if ObjectId.is_valid(kehamilan_id) else kehamilan_id
 
-        master_items = list(TasBersalinModel.master_collection.find({}))
-        user_items = list(TasBersalinModel.collection.find({"kehamilan_id": k_id}))
+        # 1. Ambil seluruh data master bawaan admin yang bersifat global (tidak disembunyikan admin)
+        master_items = list(TasBersalinModel.master_collection.find({"is_hidden": {"$ne": True}}))
+        
+        # 2. Ambil progres & konfigurasi spesifik dari user ini
+        user_progress_data = list(TasBersalinModel.collection.find({"kehamilan_id": k_id}))
+
+        # Buat daftar item bawaan admin yang sengaja disembunyikan oleh pengguna ini
+        hidden_by_user = [
+            u["name"] for u in user_progress_data if u.get("is_hidden") == True
+        ]
 
         result = []
 
+        # 3. Gabungkan Master (yang tidak di-hide user) + Custom User
         for m in master_items:
-            match = next(
-                (u for u in user_items if u["name"] == m["name"] and u["category"] == m["category"]),
-                None
-            )
+            if m["name"] in hidden_by_user:
+                continue # Skip jika disembunyikan oleh pengguna ini
 
+            match = next((u for u in user_progress_data if u["name"] == m["name"]), None)
             result.append({
-                "name": m.get("name"),
+                "id": str(m["_id"]),
+                "name": m["name"],
                 "detail": m.get("detail", ""),
-                "category": m.get("category"),
-                "type": m.get("type", "optional"),  # 🔥 TAMBAHAN WAJIB / OPTIONAL
-                "isChecked": match["isChecked"] if match else False
+                "category": m["category"],
+                "type": m.get("type", "Disarankan"),
+                "isChecked": match["isChecked"] if match else False,
+                "isCustom": False
             })
 
-        return jsonify({
-            "status": "success",
-            "data": result
-        }), 200
+        for u in user_progress_data:
+            if u.get("is_custom") == True and u.get("is_hidden") != True:
+                result.append({
+                    "id": str(u["_id"]),
+                    "name": u["name"],
+                    "detail": u.get("detail", ""),
+                    "category": u["category"],
+                    "type": u.get("type", "Pribadi"),
+                    "isChecked": u.get("isChecked", False),
+                    "isCustom": True
+                })
+
+        return jsonify({"status": "success", "data": result}), 200
 
     except Exception as e:
         print(f"❌ Error get_items: {e}")
-        return jsonify({"status": "error", "msg": "internal error"}), 500
+        return jsonify({"status": "error", "msg": "Terjadi kesalahan internal"}), 500
 
+# ===================== ADD CUSTOM ITEM =====================
+@jwt_required()
+def add_custom_item():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+
+    kehamilan_id = data.get("kehamilan_id")
+    name = data.get("name")
+    category = data.get("category")
+    priority_type = data.get("priority")  # Di Flutter kamu kirim key 'priority'
+    detail = data.get("detail", "")       # Ambil deskripsi opsional
+
+    if not all([kehamilan_id, name, category, priority_type]):
+        return jsonify({"msg": "Data tidak lengkap"}), 422
+
+    result = TasBersalinModel.add_custom_item(
+        user_id=user_id,
+        kehamilan_id=kehamilan_id,
+        name=name,
+        category=category,
+        type=priority_type,
+        detail=detail
+    )
+
+    if result:
+        return jsonify({"msg": "Item kustom berhasil ditambahkan"}), 201
+    return jsonify({"msg": "Gagal menambahkan item"}), 500
+
+
+# ===================== UPDATE CUSTOM ITEM (FITUR BARU) =====================
+@jwt_required()
+def update_custom_item(item_id):
+    data = request.get_json()
+
+    name = data.get("name")
+    category = data.get("category")
+    priority_type = data.get("priority")
+    detail = data.get("detail", "")
+
+    if not all([name, category, priority_type]):
+        return jsonify({"msg": "Data perubahan tidak lengkap"}), 422
+
+    result = TasBersalinModel.update_custom_item(
+        item_id=item_id,
+        name=name,
+        category=category,
+        type=priority_type,
+        detail=detail
+    )
+
+    if result and result.modified_count > 0:
+        return jsonify({"msg": "Item kustom berhasil diperbarui"}), 200
+        
+    return jsonify({"msg": "Gagal memperbarui item atau tidak ada perubahan data"}), 400
 
 # ===================== ADMIN INDEX =====================
 def admin_index_tas():
@@ -89,7 +206,7 @@ def admin_create_tas():
             "name": request.form["name"],
             "detail": request.form["detail"],
             "category": request.form["category"],
-            "type": request.form.get("type", "optional")  # 🔥 WAJIB / OPTIONAL
+            "type": request.form.get("type", "Disarankan")  # 🔥 WAJIB / OPTIONAL
         })
         return redirect(url_for("tasbersalin_bp.admin_index_tas"))
 
@@ -107,7 +224,7 @@ def admin_edit_tas(id):
                 "name": request.form["name"],
                 "detail": request.form["detail"],
                 "category": request.form["category"],
-                "type": request.form.get("type", "optional")  # 🔥
+                "type": request.form.get("type", "Disarankan")  # 🔥
             }}
         )
         return redirect(url_for("tasbersalin_bp.admin_index_tas"))

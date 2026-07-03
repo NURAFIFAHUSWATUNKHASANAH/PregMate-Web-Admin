@@ -93,16 +93,27 @@
                             </span>
                         </td>
 
-<!-- TYPE (WAJIB / OPTIONAL) -->
-<td style="white-space: nowrap;"> <!-- Tambahan style inline untuk memastikan keamanan -->
-    {% if item.type == 'wajib' %}
-        <span class="badge-wajib">
-            <i class="fas fa-check-circle"></i> Wajib
+<td>
+    {% if item.type == "Penting" %}
+        <span class="badge-penting">
+            <i class="fas fa-triangle-exclamation"></i>
+            Penting
         </span>
+
+    {% elif item.type == "Disarankan" %}
+
+        <span class="badge-disarankan">
+            <i class="fas fa-thumbs-up"></i>
+            Disarankan
+        </span>
+
     {% else %}
-        <span class="badge-optional">
-            <i class="fas fa-circle-info"></i> Optional
+
+        <span class="badge-pribadi">
+            <i class="fas fa-user"></i>
+            Pribadi
         </span>
+
     {% endif %}
 </td>
 
