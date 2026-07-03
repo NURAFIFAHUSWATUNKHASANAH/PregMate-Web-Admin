@@ -33,13 +33,70 @@
 .badge-wajib i, .badge-optional i {
     font-size: 11px;
 }
+
+/* ================= PAGINATION STYLES ================= */
+.pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    padding: 10px 5px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: #64748b;
+}
+
+.pagination-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 5px;
+}
+
+.pagination-item a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.pagination-item a:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+}
+
+.pagination-item.active a {
+    background-color: #040049; /* Sesuaikan warna tema admin Anda */
+    color: white;
+    border-color: #040049;
+}
+
+.pagination-item.disabled a {
+    color: #cbd5e1;
+    pointer-events: none;
+    background-color: #f8fafc;
+    border-color: #e2e8f0;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="user-container">
 
-    <!-- HEADER -->
     <div class="user-header-wrapper">
         <div class="user-title-group">
             <i class="fas fa-suitcase-medical"></i>
@@ -51,14 +108,12 @@
             </div>
         </div>
 
-        <!-- BUTTON TAMBAH -->
         <a href="{{ url_for('tasbersalin_bp.admin_create_tas') }}" class="btn-add-modern">
             <i class="fas fa-plus"></i>
             <span>Tambah Item</span>
         </a>
     </div>
 
-    <!-- TABLE -->
     <div class="table-responsive">
         <table class="user-table">
             <thead>
@@ -75,60 +130,47 @@
                 {% if items %}
                     {% for item in items %}
                     <tr>
-
-                        <!-- NAMA -->
                         <td><strong>{{ item.name }}</strong></td>
 
-                        <!-- DETAIL -->
                         <td>{{ item.detail }}</td>
 
-                        <!-- KATEGORI -->
-                        <td>
-                            <span class="badge 
-                                {% if item.category == 'ibu' %}badge-ibu
-                                {% elif item.category == 'bayi' %}badge-bayi
-                                {% else %}badge-pendamping
-                                {% endif %}">
-                                {{ item.category }}
-                            </span>
-                        </td>
-
 <td>
-    {% if item.type == "Penting" %}
-        <span class="badge-penting">
-            <i class="fas fa-triangle-exclamation"></i>
-            Penting
-        </span>
-
-    {% elif item.type == "Disarankan" %}
-
-        <span class="badge-disarankan">
-            <i class="fas fa-thumbs-up"></i>
-            Disarankan
-        </span>
-
-    {% else %}
-
-        <span class="badge-pribadi">
-            <i class="fas fa-user"></i>
-            Pribadi
-        </span>
-
-    {% endif %}
+    <span class="badge 
+        {% if item.category == 'ibu' %}badge-ibu
+        {% elif item.category == 'bayi' %}badge-bayi
+        {% else %}badge-pendamping
+        {% endif %}">
+        {{ item.category }}
+    </span>
 </td>
 
-                        <!-- AKSI -->
+                        <td>
+                            {% if item.type == "Penting" %}
+                                <span class="badge-penting">
+                                    <i class="fas fa-triangle-exclamation"></i>
+                                    Penting
+                                </span>
+                            {% elif item.type == "Disarankan" %}
+                                <span class="badge-disarankan">
+                                    <i class="fas fa-thumbs-up"></i>
+                                    Disarankan
+                                </span>
+                            {% else %}
+                                <span class="badge-pribadi">
+                                    <i class="fas fa-user"></i>
+                                    Pribadi
+                                </span>
+                            {% endif %}
+                        </td>
+
                         <td>
                             <div class="user-action-buttons">
-
-                                <!-- EDIT -->
                                 <a href="{{ url_for('tasbersalin_bp.admin_edit_tas', id=item._id) }}" 
                                    class="btn-action btn-edit"
                                    title="Edit">
                                     <i class="fas fa-pen-to-square"></i>
                                 </a>
 
-                                <!-- DELETE -->
                                 <a href="#"
                                    class="btn-action btn-delete btn-hapus"
                                    data-url="{{ url_for('tasbersalin_bp.admin_delete_tas', id=item._id) }}"
@@ -136,10 +178,8 @@
                                    title="Hapus">
                                     <i class="fas fa-trash"></i>
                                 </a>
-
                             </div>
                         </td>
-
                     </tr>
                     {% endfor %}
                 {% else %}
@@ -151,9 +191,42 @@
                     </tr>
                 {% endif %}
             </tbody>
-
         </table>
     </div>
+
+    {% if total_pages and total_pages > 1 %}
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Menampilkan halaman <strong>{{ current_page }}</strong> dari <strong>{{ total_pages }}</strong> (Total: {{ total_items }} item)
+        </div>
+        
+        <ul class="pagination-list">
+            <li class="pagination-item {% if current_page == 1 %}disabled{% endif %}">
+                <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=current_page-1) }}" title="Halaman Sebelumnya">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+
+            {% for p in range(1, total_pages + 1) %}
+                {% if p == 1 or p == total_pages or (p >= current_page - 2 and p <= current_page + 2) %}
+                    <li class="pagination-item {% if p == current_page %}active{% endif %}">
+                        <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=p) }}">{{ p }}</a>
+                    </li>
+                {% elif p == current_page - 3 or p == current_page + 3 %}
+                    <li class="pagination-item disabled">
+                        <a href="#">...</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            <li class="pagination-item {% if current_page == total_pages %}disabled{% endif %}">
+                <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=current_page+1) }}" title="Halaman Selanjutnya">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+    {% endif %}
 
 </div>
 {% endblock %}

@@ -193,11 +193,40 @@ def update_custom_item(item_id):
         
     return jsonify({"msg": "Gagal memperbarui item atau tidak ada perubahan data"}), 400
 
-# ===================== ADMIN INDEX =====================
+# ===================== ADMIN INDEX (WITH PAGINATION) =====================
 def admin_index_tas():
-    items = list(TasBersalinModel.master_collection.find())
-    return render_template("tas_bersalin/index.html", items=items)
+    try:
+        # 1. Ambil nomor halaman aktif dari URL (default ke halaman 1)
+        page = int(request.args.get('page', 1))
+        per_page = 10  # Jumlah data per halaman, silakan sesuaikan kebutuhan
+        
+        # 2. Hitung total records dan total halaman keseluruhan
+        total_items = TasBersalinModel.master_collection.count_documents({})
+        total_pages = max(1, (total_items + per_page - 1) // per_page)
+        
+        # Pastikan page tidak out-of-bounds
+        if page < 1:
+            page = 1
+        elif page > total_pages:
+            page = total_pages
 
+        # 3. Ambil data dengan skip dan limit berdasarkan halaman aktif
+        skip_amount = (page - 1) * per_page
+        items = list(TasBersalinModel.master_collection.find().skip(skip_amount).limit(per_page))
+        
+        # 4. Kirimkan variabel penunjang pagination ke template Jinja2
+        return render_template(
+            "tas_bersalin/index.html", 
+            items=items, 
+            current_page=page, 
+            total_pages=total_pages,
+            total_items=total_items
+        )
+    except Exception as e:
+        print(f"❌ Error admin_index_tas pagination: {e}")
+        # Fallback jika terjadi error konversi data int
+        items = list(TasBersalinModel.master_collection.find().limit(10))
+        return render_template("tas_bersalin/index.html", items=items, current_page=1, total_pages=1, total_items=len(items))
 
 # ===================== ADMIN CREATE =====================
 def admin_create_tas():
