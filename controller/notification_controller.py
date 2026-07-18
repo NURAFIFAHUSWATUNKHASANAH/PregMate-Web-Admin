@@ -407,3 +407,112 @@ def cek_notif_kalkulator(db):
 
         except Exception as e:
             print("❌ ERROR NOTIF KALKULATOR:", e)
+
+def kirim_notif_agenda_statis(user, nama_aktivitas, jam):
+    """Mengirim push notification agenda statis level 1 ke Ibu Hamil"""
+    token = user.get("fcmToken") or user.get("tokenFCM") or user.get("token")
+
+    if not token:
+        return False
+
+    try:
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title="Pengingat Aktivitas 🤰",
+                body=f"Bunda, sekarang jam {jam}. Yuk lakukan aktivitas: {nama_aktivitas}"
+            ),
+            data={
+                "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                "halaman": "companion",
+                "nama_aktivitas": nama_aktivitas
+            },
+            token=token
+        )
+        messaging.send(message)
+        print(f"✅ Notif [{nama_aktivitas}] terkirim ke: {user.get('nama')}")
+        return True
+    except Exception as e:
+        print(f"❌ Gagal kirim notif ke {user.get('nama')}, membersihkan token... Error: {e}")
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {"$unset": {"fcmToken": "", "tokenFCM": "", "token": ""}}
+        )
+        return False
+
+from zoneinfo import ZoneInfo
+from datetime import datetime
+
+def kirim_notif_checkin(user):
+    token = user.get("fcmToken") or user.get("tokenFCM") or user.get("token")
+
+    if not token:
+        return False
+
+    try:
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title="Check-in Harian 🤰",
+                body="Bunda belum melakukan Check-in hari ini. Yuk mulai Check-in untuk mendapatkan agenda dan rekomendasi hari ini."
+            ),
+            data={
+                "click_action": "FLUTTER_NOTIFICATION_CLICK",
+                "halaman": "companion"
+            },
+            token=token
+        )
+
+        messaging.send(message)
+
+        print(f"✅ Notif Check-in terkirim ke {user.get('nama')}")
+        return True
+
+    except Exception as e:
+        print(e)
+
+        users_collection.update_one(
+            {"_id": user["_id"]},
+            {
+                "$unset": {
+                    "fcmToken": "",
+                    "tokenFCM": "",
+                    "token": ""
+                }
+            }
+        )
+
+        return False
+
+def cek_notif_checkin(db):
+
+    now = datetime.now(ZoneInfo("Asia/Jakarta"))
+
+    # hanya kirim pukul 07.00 - 21.00
+    if now.hour < 7 or now.hour > 21:
+        return
+
+    today = now.strftime("%Y-%m-%d")
+
+    users = db["users"]
+    companion = db["companion_plans"]
+
+    ibu_list = users.find({"role": "ibu"})
+
+    for ibu in ibu_list:
+
+        plan = companion.find_one({
+            "user_id": ibu["_id"],
+            "tanggal": today
+        })
+
+        # belum ada plan sama sekali -> kirim notif
+        if plan is None:
+            kirim_notif_checkin(ibu)
+            continue
+
+        # ===== SUDAH CHECK-IN =====
+        # submit_companion_checkin() akan mengubah current_phase menjadi 3
+        if plan.get("current_phase", 1) >= 3:
+            continue
+
+        # ===== BELUM CHECK-IN =====
+        kirim_notif_checkin(ibu)

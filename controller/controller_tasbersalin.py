@@ -193,15 +193,32 @@ def update_custom_item(item_id):
         
     return jsonify({"msg": "Gagal memperbarui item atau tidak ada perubahan data"}), 400
 
-# ===================== ADMIN INDEX (WITH PAGINATION) =====================
+# ===================== ADMIN INDEX (WITH PAGINATION & SEARCH) =====================
 def admin_index_tas():
     try:
-        # 1. Ambil nomor halaman aktif dari URL (default ke halaman 1)
-        page = int(request.args.get('page', 1))
-        per_page = 10  # Jumlah data per halaman, silakan sesuaikan kebutuhan
+        # 1. Ambil query pencarian dan nomor halaman aktif dari URL
+        search_query = request.args.get('search', '').strip()
+        try:
+            page = int(request.args.get('page', 1))
+        except ValueError:
+            page = 1
+            
+        per_page = 10  # Jumlah data per halaman
+
+        # 2. Bangun filter pencarian menggunakan Regex (Case-Insensitive)
+        query_filter = {}
+        if search_query:
+            query_filter = {
+                "$or": [
+                    {"name": {"$regex": search_query, "$options": "i"}},
+                    {"detail": {"$regex": search_query, "$options": "i"}},
+                    {"category": {"$regex": search_query, "$options": "i"}},
+                    {"type": {"$regex": search_query, "$options": "i"}}
+                ]
+            }
         
-        # 2. Hitung total records dan total halaman keseluruhan
-        total_items = TasBersalinModel.master_collection.count_documents({})
+        # 3. Hitung total records ter-filter dan total halaman keseluruhan
+        total_items = TasBersalinModel.master_collection.count_documents(query_filter)
         total_pages = max(1, (total_items + per_page - 1) // per_page)
         
         # Pastikan page tidak out-of-bounds
@@ -210,23 +227,23 @@ def admin_index_tas():
         elif page > total_pages:
             page = total_pages
 
-        # 3. Ambil data dengan skip dan limit berdasarkan halaman aktif
+        # 4. Ambil potongan data berdasarkan halaman aktif
         skip_amount = (page - 1) * per_page
-        items = list(TasBersalinModel.master_collection.find().skip(skip_amount).limit(per_page))
+        items = list(TasBersalinModel.master_collection.find(query_filter).skip(skip_amount).limit(per_page))
         
-        # 4. Kirimkan variabel penunjang pagination ke template Jinja2
+        # 5. Kirimkan variabel penunjang pagination dan search ke template
         return render_template(
             "tas_bersalin/index.html", 
             items=items, 
             current_page=page, 
             total_pages=total_pages,
-            total_items=total_items
+            total_items=total_items,
+            search_query=search_query
         )
     except Exception as e:
-        print(f"❌ Error admin_index_tas pagination: {e}")
-        # Fallback jika terjadi error konversi data int
+        print(f"❌ Error admin_index_tas: {e}")
         items = list(TasBersalinModel.master_collection.find().limit(10))
-        return render_template("tas_bersalin/index.html", items=items, current_page=1, total_pages=1, total_items=len(items))
+        return render_template("tas_bersalin/index.html", items=items, current_page=1, total_pages=1, total_items=len(items), search_query="")
 
 # ===================== ADMIN CREATE =====================
 def admin_create_tas():

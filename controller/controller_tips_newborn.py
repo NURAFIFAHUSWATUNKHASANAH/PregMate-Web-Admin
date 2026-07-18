@@ -5,16 +5,34 @@ import os
 from bson import ObjectId
 
 
-# ================= ADMIN INDEX =================
+# ================= ADMIN INDEX (WITH SEARCH) =================
 def admin_index_tips():
-    data = TipsNewbornModel.get_all()
+    # 1. Ambil parameter search dari URL
+    search_query = request.args.get('search', '').strip()
+    
+    # 2. Kondisikan query MongoDB (Mencari berdasarkan Judul atau Deskripsi)
+    query_filter = {}
+    if search_query:
+        query_filter = {
+            "$or": [
+                {"title": {"$regex": search_query, "$options": "i"}},
+                {"desc": {"$regex": search_query, "$options": "i"}}
+            ]
+        }
+        
+    # Jika model Anda mendukung parameter filter, masukkan query_filter ke dalamnya.
+    # Jika tidak, Anda bisa memanggil: TipsNewbornModel.collection.find(query_filter)
+    # Di sini diasumsikan model Anda fleksibel atau Anda memanggil collection langsung:
+    try:
+        collection = TipsNewbornModel.collection
+        data = list(collection.find(query_filter))
+    except AttributeError:
+        # Fallback menggunakan method bawaan model jika find global sudah di-override
+        data = TipsNewbornModel.get_all() # Sesuaikan jika get_all bisa menerima filter
 
-    # 🔥 FIX: mapping video_url + samakan variabel tips
     tips = []
-
     for d in data:
         video = d.get("video")
-
         tips.append({
             "id": str(d["_id"]),
             "title": d.get("title", ""),
@@ -22,8 +40,7 @@ def admin_index_tips():
             "video_url": f"/static/videos/{video}" if video else None
         })
 
-    return render_template("tips_newborn/index.html", tips=tips)
-
+    return render_template("tips_newborn/index.html", tips=tips, search_query=search_query)
 
 # ================= CREATE =================
 def admin_create_tips():

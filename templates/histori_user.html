@@ -6,6 +6,67 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+
+<style>
+/* ================= CUSTOM SEARCH BAR STYLES ================= */
+.search-form {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: relative;
+}
+
+.search-input {
+    width: 380px; /* Panjang area bar pencarian */
+    height: 46px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-right: none;
+    border-radius: 12px 0 0 12px;
+    transition: all 0.25s ease-in-out;
+}
+
+.search-input:focus {
+    background-color: #ffffff;
+    border-color: #040049;
+    box-shadow: -4px 4px 12px rgba(4, 0, 73, 0.08);
+    outline: none;
+}
+
+.btn-search {
+    height: 46px;
+    padding: 0 24px;
+    background: #040049;
+    color: #ffffff;
+    font-size: 15px;
+    border: 1px solid #040049;
+    border-radius: 0 12px 12px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-search:hover {
+    background: #110749;
+    border-color: #110749;
+    box-shadow: 4px 4px 12px rgba(4, 0, 73, 0.15);
+}
+
+.btn-search:active {
+    transform: scale(0.98);
+}
+
+.search-input::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -30,8 +91,18 @@
             </div>
 
         </div>
-
-
+        <form class="search-form" method="GET" action="{{ url_for('histori_user_bp.histori_user_page') }}">
+            <input
+                type="text"
+                name="search"
+                class="search-input"
+                placeholder="Cari aktivitas, status, atau ID..."
+                value="{{ search_query or '' }}"
+            >
+            <button class="btn-search" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
     </div>
 
     <!-- TABLE -->

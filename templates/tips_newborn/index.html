@@ -3,12 +3,49 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+/* ================= CUSTOM PENCARIAN (LONG BAR & BUTTON) ================= */
+/* Search Form */
+.user-container .search-form {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    max-width: 400px;
+}
+
+.user-container .search-input {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.user-container .search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.user-container .btn-search {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+</style>
 {% endblock %}
 
 {% block content %}
 <div class="user-container">
 
-    <!-- HEADER -->
     <div class="user-header-wrapper">
 
         <div class="user-title-group">
@@ -19,6 +56,19 @@
             </div>
         </div>
 
+        <form class="search-form" method="GET" action="{{ url_for('tips_bp.admin_index_tips') }}">
+            <input
+                type="text"
+                name="search"
+                class="search-input"
+                placeholder="Cari judul atau tutorial..."
+                value="{{ search_query or '' }}"
+            >
+            <button class="btn-search" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+
         <a href="{{ url_for('tips_bp.admin_create_tips') }}" class="btn-add-modern">
             <i class="fas fa-plus"></i>
             <span>Tambah Video</span>
@@ -26,7 +76,6 @@
 
     </div>
 
-    <!-- TABLE -->
     <div class="table-responsive">
         <table class="user-table">
 
@@ -43,31 +92,29 @@
             {% if tips %}
                 {% for t in tips %}
                 <tr>
-                    <td>{{ t.title }}</td>
+                    <td><strong>{{ t.title }}</strong></td>
 
                     <td>{{ t.desc }}</td>
 
                     <td>
-{% if t.video_url %}
-<video width="140" controls style="border-radius:12px;">
-    <source src="{{ t.video_url }}" type="video/mp4">
-</video>
-{% else %}
-<p style="color:red;">Video tidak tersedia</p>
-{% endif %}
+                    {% if t.video_url %}
+                    <video width="140" controls style="border-radius:12px;">
+                        <source src="{{ t.video_url }}" type="video/mp4">
+                    </video>
+                    {% else %}
+                    <p style="color:red;">Video tidak tersedia</p>
+                    {% endif %}
                     </td>
 
                     <td>
                         <div class="user-action-buttons">
 
-                            <!-- EDIT -->
                             <a href="{{ url_for('tips_bp.admin_edit_tips', id=t.id) }}" 
                                class="btn-action btn-edit"
                                title="Edit">
                                 <i class="fas fa-pen-to-square"></i>
                             </a>
 
-                            <!-- DELETE (SWEETALERT) -->
                             <a href="#"
                                class="btn-action btn-delete btn-hapus"
                                data-url="{{ url_for('tips_bp.admin_delete_tips', id=t.id) }}"
@@ -84,7 +131,7 @@
                 <tr>
                     <td colspan="4" class="empty-state">
                         <i class="fas fa-video-slash fa-2x"></i>
-                        <p>Data tips belum tersedia</p>
+                        <p>Data tips tidak ditemukan</p>
                     </td>
                 </tr>
             {% endif %}
@@ -97,6 +144,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- JS Global Delete Handler -->
 <script src="{{ url_for('static', filename='js/allert.js') }}"></script>
 {% endblock %}

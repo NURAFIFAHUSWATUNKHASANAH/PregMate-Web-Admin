@@ -2,21 +2,22 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/artikel.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 /* Badge tambahan untuk type */
 .badge-wajib, .badge-optional {
-    display: inline-flex;    /* Gunakan flex agar icon dan teks sejajar */
+    display: inline-flex;    
     align-items: center;
     justify-content: center;
-    gap: 6px;                /* Jarak antara icon dan teks */
-    padding: 6px 14px;       /* Padding lebih lega agar tidak mepet */
+    gap: 6px;                
+    padding: 6px 14px;       
     border-radius: 12px;
     font-size: 12px;
     font-weight: 700;
-    white-space: nowrap;     /* KUNCI: Mencegah teks turun ke bawah atau terpotong */
-    min-width: 100px;        /* Opsional: Agar lebar badge seragam */
+    white-space: nowrap;     
+    min-width: 100px;        
 }
 
 .badge-wajib {
@@ -25,11 +26,10 @@
 }
 
 .badge-optional {
-    background: #64748b;     /* Warna abu-abu yang lebih solid */
+    background: #64748b;     
     color: white;
 }
 
-/* Memastikan icon tidak merusak layout */
 .badge-wajib i, .badge-optional i {
     font-size: 11px;
 }
@@ -80,7 +80,7 @@
 }
 
 .pagination-item.active a {
-    background-color: #040049; /* Sesuaikan warna tema admin Anda */
+    background-color: #040049; 
     color: white;
     border-color: #040049;
 }
@@ -90,6 +90,41 @@
     pointer-events: none;
     background-color: #f8fafc;
     border-color: #e2e8f0;
+}
+
+/* Search Form */
+.user-container .search-form {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    max-width: 400px;
+}
+
+.user-container .search-input {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #f8fafc;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.user-container .search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--white);
+    box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.user-container .btn-search {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 0 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
 </style>
 {% endblock %}
@@ -107,6 +142,19 @@
                 </p>
             </div>
         </div>
+
+        <form class="search-form" method="GET" action="{{ url_for('tasbersalin_bp.admin_index_tas') }}">
+            <input
+                type="text"
+                name="search"
+                class="search-input"
+                placeholder="Cari nama item atau kategori..."
+                value="{{ search_query or '' }}"
+            >
+            <button class="btn-search" type="submit">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
 
         <a href="{{ url_for('tasbersalin_bp.admin_create_tas') }}" class="btn-add-modern">
             <i class="fas fa-plus"></i>
@@ -131,19 +179,16 @@
                     {% for item in items %}
                     <tr>
                         <td><strong>{{ item.name }}</strong></td>
-
                         <td>{{ item.detail }}</td>
-
-<td>
-    <span class="badge 
-        {% if item.category == 'ibu' %}badge-ibu
-        {% elif item.category == 'bayi' %}badge-bayi
-        {% else %}badge-pendamping
-        {% endif %}">
-        {{ item.category }}
-    </span>
-</td>
-
+                        <td>
+                            <span class="badge 
+                                {% if item.category == 'ibu' %}badge-ibu
+                                {% elif item.category == 'bayi' %}badge-bayi
+                                {% else %}badge-pendamping
+                                {% endif %}">
+                                {{ item.category }}
+                            </span>
+                        </td>
                         <td>
                             {% if item.type == "Penting" %}
                                 <span class="badge-penting">
@@ -162,7 +207,6 @@
                                 </span>
                             {% endif %}
                         </td>
-
                         <td>
                             <div class="user-action-buttons">
                                 <a href="{{ url_for('tasbersalin_bp.admin_edit_tas', id=item._id) }}" 
@@ -170,7 +214,6 @@
                                    title="Edit">
                                     <i class="fas fa-pen-to-square"></i>
                                 </a>
-
                                 <a href="#"
                                    class="btn-action btn-delete btn-hapus"
                                    data-url="{{ url_for('tasbersalin_bp.admin_delete_tas', id=item._id) }}"
@@ -186,7 +229,7 @@
                     <tr>
                         <td colspan="5" class="empty-state">
                             <i class="fas fa-box-open fa-2x"></i>
-                            <p>Data tas bersalin belum tersedia</p>
+                            <p>Data tas bersalin tidak ditemukan</p>
                         </td>
                     </tr>
                 {% endif %}
@@ -202,7 +245,7 @@
         
         <ul class="pagination-list">
             <li class="pagination-item {% if current_page == 1 %}disabled{% endif %}">
-                <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=current_page-1) }}" title="Halaman Sebelumnya">
+                <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=current_page-1, search=search_query) }}" title="Halaman Sebelumnya">
                     <i class="fas fa-chevron-left"></i>
                 </a>
             </li>
@@ -210,7 +253,7 @@
             {% for p in range(1, total_pages + 1) %}
                 {% if p == 1 or p == total_pages or (p >= current_page - 2 and p <= current_page + 2) %}
                     <li class="pagination-item {% if p == current_page %}active{% endif %}">
-                        <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=p) }}">{{ p }}</a>
+                        <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=p, search=search_query) }}">{{ p }}</a>
                     </li>
                 {% elif p == current_page - 3 or p == current_page + 3 %}
                     <li class="pagination-item disabled">
@@ -220,7 +263,7 @@
             {% endfor %}
 
             <li class="pagination-item {% if current_page == total_pages %}disabled{% endif %}">
-                <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=current_page+1) }}" title="Halaman Selanjutnya">
+                <a href="{{ url_for('tasbersalin_bp.admin_index_tas', page=current_page+1, search=search_query) }}" title="Halaman Selanjutnya">
                     <i class="fas fa-chevron-right"></i>
                 </a>
             </li>

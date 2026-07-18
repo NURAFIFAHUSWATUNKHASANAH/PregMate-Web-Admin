@@ -45,34 +45,22 @@ def generate_random_password(length=8):
 def register_user():
     try:
         data = request.get_json()
-
-        # ================= IBU =================
         nama = data.get("nama")
         phone = normalize_phone(data.get("phone"))
         password = data.get("password")
-
-        # ================= SUAMI =================
         nama_suami = data.get("nama_suami")
         phone_suami = normalize_phone(data.get("phone_suami"))
 
-        # VALIDASI
         if not nama or not phone or not password:
             return jsonify({"message": "Data ibu harus lengkap"}), 400
 
-        if len(password) < 6:
-            return jsonify({"message": "Password minimal 6 karakter"}), 400
-
-        # CEK DUPLIKAT IBU
         if User.find_by_phone(phone):
             return jsonify({"message": "Nomor ibu sudah digunakan"}), 400
 
-        # HASH PASSWORD IBU
         hashed_password = generate_password_hash(password)
-
-        # OTP
         otp = str(random.randint(100000, 999999))
 
-        # ================= CREATE IBU =================
+        # CREATE IBU
         ibu_id = User.insert_user({
             "nama": nama,
             "phone": phone,
@@ -85,81 +73,46 @@ def register_user():
         })
 
         suami_id = None
-
-        # ================= CREATE SUAMI =================
         if nama_suami and phone_suami:
-
             if User.find_by_phone(phone_suami):
                 return jsonify({"message": "Nomor suami sudah digunakan"}), 400
 
             plain_password_suami = generate_random_password()
-
+            
             suami_id = User.insert_user({
                 "nama": nama_suami,
                 "phone": phone_suami,
                 "password": generate_password_hash(plain_password_suami),
+                "temp_password": plain_password_suami, # SIMPAN UNTUK DIKIRIM NANTI
                 "role": "pendamping",
                 "partner_id": str(ibu_id),
                 "otp": None,
                 "otp_verified": True
             })
 
-            # link ibu ↔ suami
-            User.update_fields(str(ibu_id), {
-                "partner_id": str(suami_id)
-            })
+            User.update_fields(str(ibu_id), {"partner_id": str(suami_id)})
 
-            # ================= WA SUAMI (PROFESSIONAL) =================
-            send_whatsapp(
-                phone_suami,
-f"""
-Halo Bapak {nama_suami},
-
-Akun Anda sebagai pendamping di aplikasi PregMate telah berhasil dibuat.
-
-Anda akan mendampingi Ibu {nama} dalam perjalanan kesehatan kehamilan.
-
-Berikut detail akun Anda:
-Nama        : {nama_suami}
-Nomor Login : {phone_suami}
-Password    : {plain_password_suami}
-
-Langkah selanjutnya:
-1. Unduh aplikasi PregMate di smartphone Anda.
-2. Login menggunakan nomor dan password di atas.
-3. Demi keamanan, segera ubah password setelah login pertama kali.
-
-Terima kasih telah menjadi pendamping dalam perjalanan kesehatan Ibu {nama}.
-
-Salam hangat,
-Tim PregMate
-"""
-            )
-
-        # ================= WA IBU (OTP PROFESSIONAL) =================
+        # KIRIM WA HANYA KE IBU
         send_whatsapp(
             phone,
-f"""
-Halo Ibu {nama},
+f"""Halo Ibu {nama},
 
-Selamat datang di PregMate, aplikasi pendamping kesehatan ibu hamil.
+🌸 Selamat datang di *PregMate*, aplikasi pendamping kesehatan ibu hamil.
 
 Untuk mengaktifkan akun Anda, silakan gunakan kode OTP berikut:
 
-Kode OTP : {otp}
-Berlaku  : 10 menit
+    🔐 *Kode OTP:* {otp}
+    ⏳ *Masa berlaku:* 10 menit
 
-Cara verifikasi:
-Masukkan kode OTP tersebut pada aplikasi PregMate.
+Silakan masukkan kode OTP tersebut pada halaman verifikasi di aplikasi PregMate.
 
-Demi keamanan akun Anda, jangan pernah membagikan kode ini kepada siapapun.
+⚠️ Demi keamanan akun, jangan pernah membagikan kode OTP ini kepada siapa pun, termasuk pihak yang mengatasnamakan PregMate.
 
-Terima kasih telah mempercayai PregMate sebagai pendamping kehamilan Anda.
+Terima kasih telah mempercayai PregMate sebagai pendamping perjalanan kehamilan Anda.
 
 Salam hangat,
-Tim PregMate
-"""
-        )
+*Tim PregMate*"""
+    )
 
         return jsonify({
             "message": "Registrasi berhasil",
@@ -168,51 +121,64 @@ Tim PregMate
         }), 201
 
     except Exception as e:
-        print("ERROR REGISTER:", e)
         return jsonify({"message": str(e)}), 500
+    
 # ================================
 # VERIFY OTP
 # ================================
-
 def verify_otp():
     try:
         data = request.get_json()
-
         user_id = data.get("user_id")
         otp_input = data.get("otp")
 
-        if not user_id or not otp_input:
-            return jsonify({"message": "Data tidak lengkap"}), 400
-
         user = User.find_by_id(user_id)
-        if not user:
-            return jsonify({"message": "User tidak ditemukan"}), 404
+        if not user or otp_input != user.get("otp"):
+            return jsonify({"message": "OTP salah atau user tidak ditemukan"}), 400
 
-        if user.get("otp_verified"):
-            return jsonify({"message": "Sudah diverifikasi"}), 400
-
-        otp_created = parser.isoparse(user.get("otp_created_at"))
-
-        if (datetime.datetime.utcnow() - otp_created).total_seconds() > 600:
-            return jsonify({"message": "OTP kadaluarsa"}), 400
-
-        if otp_input != user.get("otp"):
-            return jsonify({"message": "OTP salah"}), 400
-
-        # update
+        # Update status verifikasi
         User.update_fields(user_id, {
             "otp_verified": True,
             "otp": None,
             "otp_created_at": None
         })
 
-        token = create_access_token(identity=str(user_id))
+        # --- KIRIM WA KE PENDAMPING JIKA ADA ---
+        partner_id = user.get("partner_id")
+        if partner_id:
+            pendamping = User.find_by_id(partner_id)
+            if pendamping:
+                plain_pass = pendamping.get("temp_password")
+                send_whatsapp(
+                    pendamping.get("phone"),
+f"""
+Halo Bapak {pendamping.get("nama")},
 
-        return jsonify({
-            "message": "Berhasil verifikasi",
-            "token": token
-        }), 200
+Akun Anda sebagai pendamping di aplikasi PregMate telah berhasil diaktifkan.
+
+Anda kini resmi terhubung untuk mendampingi Ibu {user.get("nama")} dalam memantau perjalanan kesehatan kehamilan.
+
+Berikut adalah detail akses akun Anda:
+    Nama        : {pendamping.get("nama")}
+    Nomor Login : {pendamping.get("phone")}
+    Password    : {plain_pass}
+
+Langkah selanjutnya:
+1. Unduh aplikasi PregMate di smartphone Anda.
+2. Login menggunakan kredensial di atas.
+3. Demi keamanan, mohon segera ubah password setelah login pertama kali.
+
+Terima kasih atas dedikasi Anda dalam mendukung kesehatan kehamilan Ibu {user.get("nama")}.
+
+Salam hangat,
+Tim PregMate
+    """
+    )
+                # Opsional: Hapus temp_password setelah dikirim
+                # User.update_fields(partner_id, {"temp_password": None})
+
+        token = create_access_token(identity=str(user_id))
+        return jsonify({"message": "Berhasil verifikasi", "token": token}), 200
 
     except Exception as e:
-        print(e)
         return jsonify({"message": str(e)}), 500

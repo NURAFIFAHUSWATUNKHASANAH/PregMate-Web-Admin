@@ -87,54 +87,83 @@ perkembangan_janin = {
 
 
 # ===============================
-# SIMPAN DATA KEHAMILAN
+# SIMPAN DATA KEHAMILAN (VERSI LENGKAP)
 # ===============================
-
 @jwt_required()
 def submit_validasi_kehamilan():
     try:
         user_id = get_jwt_identity()
         data = request.get_json()
 
+        # Data Fisik
         hpht = data.get("hpht")
         tinggi_badan = data.get("tinggi_badan")
         berat_badan = data.get("berat_badan")
+        lila = data.get("lila")
+        tekanan_darah = data.get("tekanan_darah")
+        
+        # Data Riwayat (B) & Checklist (C)
+        is_kehamilan_pertama = data.get("is_kehamilan_pertama")
+        jumlah_kehamilan = data.get("jumlah_kehamilan")
+        jumlah_persalinan = data.get("jumlah_persalinan")
+        riwayat_keguguran = data.get("riwayat_keguguran")
+        skor_risiko = data.get("skor_risiko", 0)
+        
+        # Flags
+        riwayat_sc = data.get("riwayat_sc", False)
+        riwayat_hipertensi = data.get("riwayat_hipertensi", False)
+        riwayat_preeklamsia = data.get("riwayat_preeklamsia", False)
+        riwayat_perdarahan = data.get("riwayat_perdarahan", False)
+        
+        riwayat_penyakit = data.get("riwayat_penyakit", [])
+        riwayat_kehamilan_checklist = data.get("riwayat_kehamilan_checklist", [])
 
         if not hpht:
             return jsonify({"message": "HPHT wajib diisi"}), 400
 
-        # 🔥 Cek apakah masih ada kehamilan aktif
-        existing = DataKehamilan.db["data_kehamilan"].find_one({
-            "user_id": ObjectId(user_id),
-            "status": "active"
-        })
-
+        # Cek kehamilan aktif
+        existing = DataKehamilan.db["data_kehamilan"].find_one({"user_id": ObjectId(user_id), "status": "active"})
         if existing:
             return jsonify({"message": "Masih ada kehamilan aktif"}), 400
 
-        # 🔥 Tentukan index kehamilan
+        # Tentukan index kehamilan (kehamilan ke-berapa)
         last = DataKehamilan.db["data_kehamilan"].find_one(
             {"user_id": ObjectId(user_id)},
             sort=[("kehamilan_ke", -1)]
         )
-
         kehamilan_ke = 1 if not last else last["kehamilan_ke"] + 1
 
         hpl = hitung_hpl(hpht)
-
+        
         data_kehamilan = {
             "user_id": ObjectId(user_id),
-            "kehamilan_ke": kehamilan_ke,
+            "kehamilan_ke": kehamilan_ke,  # Penting untuk histori
             "hpht": hpht,
             "hpl": hpl,
             "tinggi_badan": tinggi_badan,
             "berat_badan": berat_badan,
+            "lila": lila,
+            "tekanan_darah": tekanan_darah,
+            "is_kehamilan_pertama": is_kehamilan_pertama,
+            "jumlah_kehamilan": jumlah_kehamilan,
+            "jumlah_persalinan": jumlah_persalinan,
+            "riwayat_keguguran": riwayat_keguguran,
+            "skor_risiko": skor_risiko,
+            "kategori_risiko": "High Risk" if skor_risiko > 2 else "Sedang/Rendah",
+            "riwayat_sc": riwayat_sc,
+            "riwayat_hipertensi": riwayat_hipertensi,
+            "riwayat_preeklamsia": riwayat_preeklamsia,
+            "riwayat_perdarahan": riwayat_perdarahan,
+            "riwayat_penyakit": riwayat_penyakit,
+            "riwayat_kehamilan_checklist": riwayat_kehamilan_checklist,
             "status": "active",
             "start_date": datetime.utcnow()
         }
 
-        DataKehamilan.create(data_kehamilan)
-
+        # Simpan ke DB
+        result = DataKehamilan.create(data_kehamilan)
+        
+        # Update user status
         User.update_fields(user_id, {"is_validated": True})
 
         return jsonify({
@@ -144,9 +173,9 @@ def submit_validasi_kehamilan():
         }), 200
 
     except Exception as e:
-        print(e)
-        return jsonify({"message": "Terjadi kesalahan"}), 500
-
+        print(f"Error: {e}") # Log error untuk debugging
+        return jsonify({"message": str(e)}), 500
+    
 # ===============================
 # DASHBOARD KEHAMILAN
 # ===============================
@@ -356,54 +385,37 @@ def update_kehamilan():
         user_id = get_jwt_identity()
         data = request.get_json()
 
-        hpht = data.get("hpht")
+        # Field yang boleh diupdate
+        fields = [
+            "tinggi_badan", "berat_badan", "lila", "tekanan_darah", 
+            "riwayat_penyakit", "riwayat_kehamilan_checklist",
+            "is_kehamilan_pertama", "jumlah_kehamilan", "jumlah_persalinan",
+            "riwayat_keguguran", "riwayat_sc", "riwayat_hipertensi", 
+            "riwayat_preeklamsia", "riwayat_perdarahan"
+        ]
+        
+        update_data = {"updated_at": datetime.utcnow()}
+        
+        for field in fields:
+            if data.get(field) is not None:
+                update_data[field] = data.get(field)
 
-        if not hpht:
-            return jsonify({"message": "HPHT wajib diisi"}), 400
+        # Jika ada update HPHT, hitung ulang HPL
+        if "hpht" in data:
+            update_data["hpht"] = data["hpht"]
+            update_data["hpl"] = hitung_hpl(data["hpht"])
 
-        hpl = hitung_hpl(hpht)
-
-        update_data = {
-            "hpht": hpht,
-            "hpl": hpl,
-            "updated_at": datetime.utcnow()
-        }
-
-        if data.get("tinggi_badan") is not None:
-            update_data["tinggi_badan"] = data.get("tinggi_badan")
-
-        if data.get("berat_badan") is not None:
-            update_data["berat_badan"] = data.get("berat_badan")
-
-        # ✅ UPDATE DATA KEHAMILAN
         result = DataKehamilan.db["data_kehamilan"].update_one(
             {"user_id": ObjectId(user_id), "status": "active"},
             {"$set": update_data}
         )
 
-        # 🔥 SYNC KE KALKULATOR (FIX DI SINI)
-        KalkulatorModel.collection.update_one(
-            {"user_id": ObjectId(user_id)},
-            {
-                "$set": {
-                    "hpht": hpht,
-                    "hpl": hpl,
-                    "updated_at": datetime.utcnow()
-                }
-            }
-        )
-
         if result.matched_count == 0:
             return jsonify({"message": "Data tidak ditemukan"}), 404
 
-        return jsonify({
-            "message": "Berhasil update",
-            "hpl": hpl
-        }), 200
-
+        return jsonify({"message": "Berhasil update"}), 200
     except Exception as e:
-        print("Error update:", e)
-        return jsonify({"message": "Terjadi kesalahan"}), 500
+        return jsonify({"message": str(e)}), 500
     
 @jwt_required()
 def end_pregnancy():

@@ -19,6 +19,11 @@ def buat_jadwal():
         # Ambil kehamilan_id dari Flutter
         kehamilan_id = data.get("kehamilan_id") 
 
+        print("========================")
+        print("USER ID :", user_id)
+        print("KEHAMILAN ID :", kehamilan_id)
+        print("========================")
+
         # 1. Simpan ke koleksi schedules
         jadwal_data = {
             "user_id": user_id,
@@ -32,7 +37,7 @@ def buat_jadwal():
         db.schedules.insert_one(jadwal_data)
 
         # 2. Format pesan
-        isi_pesan = f"Bunda membuat jadwal: {data['pesan']} ({data['tanggal']} {data['jam']})"
+        isi_pesan = f"Jadwal: {data['pesan']} ({data['tanggal']} {data['jam']})"
 
         # 3. Simpan ke histori informasi (Supaya muncul di list notifikasi aplikasi)
         db.informasi.insert_one({
@@ -54,14 +59,35 @@ def buat_jadwal():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
+    
 @jadwal_bp.route('/jadwal', methods=['GET'])
 def get_jadwal():
 
     user_id = request.args.get("user_id")
 
-    # cari kehamilan aktif
+    # cari user
+    user = db.users.find_one({
+        "_id": ObjectId(user_id)
+    })
+
+    if not user:
+        return jsonify([])
+
+    # kalau pendamping gunakan partner_id
+    if user.get("role") == "pendamping":
+        ibu_id = user.get("partner_id")
+
+        if not ibu_id:
+            return jsonify([])
+
+        user_kehamilan = ObjectId(ibu_id)
+
+    else:
+        user_kehamilan = ObjectId(user_id)
+
+    # cari kehamilan aktif ibu
     kehamilan = db.data_kehamilan.find_one({
-        "user_id": ObjectId(user_id),
+        "user_id": user_kehamilan,
         "status": "active"
     })
 
@@ -70,11 +96,15 @@ def get_jadwal():
 
     kehamilan_id = kehamilan["_id"]
 
+    # ===============================
+    # TAMPILKAN SEMUA JADWAL
+    # BERDASARKAN KEHAMILAN
+    # ===============================
+
     data = list(
         db.schedules.find({
-            "user_id": user_id,
             "kehamilan_id": kehamilan_id
-        })
+        }).sort("created_at", -1)
     )
 
     for d in data:

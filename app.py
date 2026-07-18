@@ -14,16 +14,19 @@ from ai_recommendation import generate_recommendation
 import config
 
 # Firebase & Scheduler (aktifkan jika kamu pakai)
-from controller import controller_admin_user
+from controller import controller_admin_user, controller_companion
 from controller.pregnancy_controller import dashboard_kehamilan, dashboard_kehamilan_pasangan, end_pregnancy, pregnancy_history, pregnancy_history_with_detail, submit_validasi_kehamilan, update_kehamilan
 from models.craving_model import Craving
 from models.data_kehamilan_model import DataKehamilan
+from models.kategori_model import KategoriModel
 from models.tas_bersalin_model import TasBersalinModel
 from models.tips_newborn_model import TipsNewbornModel
 from scheduler import start_scheduler
 from route_halaman.route_meditation import meditation_bp, set_db as set_meditation_db
 from ai_babyname import generate_baby_name
 from firebase_init import init_firebase
+from route_halaman.route_companion import companion_bp
+from scheduler import start_scheduler, start_companion_scheduler  # Sesuaikan jika berada di file yang sama
 # ============================== KONVERSI ObjectId AGAR BISA DI JSONIFY ==============================
 
 class CustomJSONProvider(DefaultJSONProvider):
@@ -112,6 +115,8 @@ KalkulatorModel.set_db(db)
 TasBersalinModel.set_db(db)
 TipsNewbornModel.set_db(db)
 UkuranJaninModel.set_db(db)
+KategoriModel.set_db(db)
+controller_companion.set_db(db)
 
 
 # ============================== BLUEPRINT REGISTRASI ==============================
@@ -132,7 +137,8 @@ def register_blueprints():
     from route_halaman.craving_route import craving_bp
     from route_halaman.tasbersalin_route import tasbersalin_bp
     from route_halaman.route_ukuranjanin import ukuranjanin_bp
-    
+    from route_halaman.kategori_route import kategori_bp
+
     app.register_blueprint(ukuranjanin_bp)
     app.register_blueprint(histori_user_bp)
     app.register_blueprint(forgot_password_bp)
@@ -155,6 +161,8 @@ def register_blueprints():
     app.register_blueprint(kalkulator_bp)
     app.register_blueprint(tasbersalin_bp)
     app.register_blueprint(tips_bp)
+    app.register_blueprint(kategori_bp)
+    app.register_blueprint(companion_bp)
     
 register_blueprints()
 
@@ -470,7 +478,12 @@ def api_kirim_notif_relaksasi():
         }), 500
 # ============================== RUN APLIKASI ==============================
 
-if __name__ == '__main__':
-    
-    start_scheduler(db)    # aktifkan jika kamu gunakan fitur penjadwalan
-    app.run(host='0.0.0.0', port=5000, debug=True)
+start_scheduler(db)
+start_companion_scheduler(db)
+
+if __name__ == "__main__":
+    app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=True
+    )
